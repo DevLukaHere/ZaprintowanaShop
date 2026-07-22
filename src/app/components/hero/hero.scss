@@ -10,9 +10,9 @@
   text-align: center;
   padding: 6rem 1.5rem 2.5rem;
   border-bottom: 1px solid var(--color-border);
-  background:
-    linear-gradient(rgba(251, 245, 242, 0.85), rgba(251, 245, 242, 0.85)),
-    url('MenuBackgroundImage1.jpg') center 35% / cover no-repeat;
+  background-position: center 35%;
+  background-size: cover;
+  background-repeat: no-repeat;
 
   &__rule {
     width: 48px;
