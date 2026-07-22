@@ -2,7 +2,7 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "zaprintowana-sklep",
+      "name": "ZaprintowanaShop",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["start"],
       "port": 4200

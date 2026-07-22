@@ -7,7 +7,7 @@
   },
   "newProjectRoot": "projects",
   "projects": {
-    "zaprintowana-sklep": {
+    "ZaprintowanaShop": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
@@ -60,10 +60,10 @@
           "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "zaprintowana-sklep:build:production"
+              "buildTarget": "ZaprintowanaShop:build:production"
             },
             "development": {
-              "buildTarget": "zaprintowana-sklep:build:development"
+              "buildTarget": "ZaprintowanaShop:build:development"
             }
           },
           "defaultConfiguration": "development"
