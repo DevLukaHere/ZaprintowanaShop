@@ -1,0 +1,43 @@
+<section class="collections">
+  <h2 class="section-title">Nasze Produkty</h2>
+
+  <div class="carousel" #carouselViewport>
+    <div class="carousel__track" #carouselTrack>
+      @for (collection of carouselItems; track $index) {
+        <article class="card carousel__item" [class]="'card--' + collection.theme">
+          <button
+            type="button"
+            class="card__wishlist"
+            [class.card__wishlist--active]="cart.isWishlisted(collection.id)"
+            (click)="cart.toggleWishlist(collection.id)"
+            [attr.aria-label]="'Dodaj ' + collection.name + ' do ulubionych'"
+            [attr.aria-pressed]="cart.isWishlisted(collection.id)"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 1 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+            </svg>
+          </button>
+
+          @if (collection.image) {
+            <img class="card__image" [src]="collection.image" [alt]="collection.name" />
+          } @else {
+            <span class="card__image card__image--placeholder"></span>
+          }
+          <div class="card__body">
+            @if (collection.badge) {
+              <span class="card__badge">{{ collection.badge }}</span>
+            }
+            <h3 class="card__name">{{ collection.name }}</h3>
+            <p class="card__description">{{ collection.description }}</p>
+            <div class="card__footer">
+              <span class="card__price">{{ collection.price }}</span>
+              <button type="button" class="card__cta" (click)="cart.addToCart(collection.id)">
+                Do koszyka
+              </button>
+            </div>
+          </div>
+        </article>
+      }
+    </div>
+  </div>
+</section>

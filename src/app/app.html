@@ -1,53 +1,8 @@
 <main class="page">
-  <section class="hero">
-    <span class="hero__rule"></span>
-    <p class="eyebrow">Ekskluzywne Zaproszenia</p>
-    <h1 class="hero__title">Twój Wielki Dzień</h1>
-    <p class="hero__subtitle">
-      Zaproszenia, które będą wspomnieniem na wieczność. Rzemiosło, luksus i geometryczna
-      doskonałość.
-    </p>
-    <button type="button" class="btn btn--primary">Odkryj Kolekcję</button>
-  </section>
-
-  <section class="collections">
-    <h2 class="section-title">Nasze Kolekcje</h2>
-
-    <div class="collections__grid">
-      @for (collection of collections; track collection.name) {
-        <article class="card" [class]="'card--' + collection.theme">
-          <span class="card__fold"></span>
-          <div class="card__meta">
-            <span class="card__number">{{ collection.labelNumber }}</span>
-            @if (collection.badge) {
-              <span class="card__badge">— {{ collection.badge }}</span>
-            }
-          </div>
-          <h3 class="card__name">{{ collection.name }}</h3>
-          <p class="card__description">{{ collection.description }}</p>
-          <span class="card__price">{{ collection.price }}</span>
-        </article>
-      }
-    </div>
-  </section>
-
-  <section class="why">
-    <h2 class="section-title">Dlaczego My</h2>
-
-    <div class="why__grid">
-      @for (feature of features; track feature.label) {
-        <div class="why__item">
-          <span class="why__stat">{{ feature.stat }}</span>
-          <span class="why__label">{{ feature.label }}</span>
-          <p class="why__description">{{ feature.description }}</p>
-        </div>
-      }
-    </div>
-  </section>
-
-  <section class="consultation">
-    <p class="eyebrow">Konsultacja</p>
-    <h2 class="consultation__title">Chcesz poznać nasze zaproszenia osobiście?</h2>
-    <button type="button" class="btn btn--outline">Zarezerwuj Wizytę</button>
-  </section>
+  <app-navbar />
+  <app-hero />
+  <app-product-carousel />
+  <app-why-us />
+  <app-consultation />
+  <app-footer />
 </main>

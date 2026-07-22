@@ -1,0 +1,106 @@
+<header class="navbar">
+  <div class="navbar__brand">
+    <span class="navbar__logo">Zaprintowana</span>
+    <span class="navbar__tagline">serio fajne kartki</span>
+  </div>
+
+  <nav class="navbar__links">
+    <a href="#">Zaproszenia ślubne</a>
+    <a href="#">Dodatki ślubne</a>
+    <a href="#">Podziękowania</a>
+  </nav>
+
+  <label class="navbar__search">
+    <input type="text" placeholder="Czego szukasz?" />
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="11" cy="11" r="7"></circle>
+      <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+    </svg>
+  </label>
+
+  <div class="navbar__actions">
+    <div class="navbar__action-wrapper">
+      <button type="button" class="navbar__action">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 1 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+        </svg>
+        <span>Ulubione @if (cart.wishlistCount() > 0) { ({{ cart.wishlistCount() }}) }</span>
+      </button>
+
+      <div class="navbar__dropdown">
+        @if (cart.wishlistIds().length === 0) {
+          <p class="navbar__dropdown-empty">Brak ulubionych produktów</p>
+        } @else {
+          <ul class="navbar__dropdown-list">
+            @for (id of cart.wishlistIds(); track id) {
+              @if (getCollection(id); as item) {
+                <li class="navbar__dropdown-item">
+                  @if (item.image) {
+                    <img [src]="item.image" [alt]="item.name" />
+                  }
+                  <div class="navbar__dropdown-info">
+                    <span class="navbar__dropdown-name">{{ item.name }}</span>
+                    <span class="navbar__dropdown-price">{{ item.price }}</span>
+                  </div>
+                  <button
+                    type="button"
+                    class="navbar__dropdown-remove"
+                    (click)="cart.toggleWishlist(id)"
+                    aria-label="Usuń z ulubionych"
+                  >
+                    ×
+                  </button>
+                </li>
+              }
+            }
+          </ul>
+        }
+      </div>
+    </div>
+
+    <div class="navbar__action-wrapper">
+      <button type="button" class="navbar__action">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M6 8h12l-1 12.5a1 1 0 0 1-1 .9H8a1 1 0 0 1-1-.9L6 8z"></path>
+          <path d="M9 8V6.5a3 3 0 0 1 6 0V8"></path>
+        </svg>
+        <span>Koszyk @if (cart.cartCount() > 0) { ({{ cart.cartCount() }}) }</span>
+      </button>
+
+      <div class="navbar__dropdown">
+        @if (cart.cartEntries().length === 0) {
+          <p class="navbar__dropdown-empty">Koszyk jest pusty</p>
+        } @else {
+          <ul class="navbar__dropdown-list">
+            @for (entry of cart.cartEntries(); track entry.id) {
+              @if (getCollection(entry.id); as item) {
+                <li class="navbar__dropdown-item">
+                  @if (item.image) {
+                    <img [src]="item.image" [alt]="item.name" />
+                  }
+                  <div class="navbar__dropdown-info">
+                    <span class="navbar__dropdown-name">
+                      {{ item.name }}
+                      @if (entry.qty > 1) {
+                        × {{ entry.qty }}
+                      }
+                    </span>
+                    <span class="navbar__dropdown-price">{{ item.price }}</span>
+                  </div>
+                  <button
+                    type="button"
+                    class="navbar__dropdown-remove"
+                    (click)="cart.removeFromCart(entry.id)"
+                    aria-label="Usuń z koszyka"
+                  >
+                    ×
+                  </button>
+                </li>
+              }
+            }
+          </ul>
+        }
+      </div>
+    </div>
+  </div>
+</header>

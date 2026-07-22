@@ -1,0 +1,234 @@
+:host {
+  display: block;
+}
+
+.navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  padding: 0.9rem 2.5rem;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+
+  &__brand {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.1;
+  }
+
+  &__logo {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-weight: 600;
+    font-size: 2.1rem;
+    letter-spacing: 0.03em;
+    color: var(--color-blush-deep);
+    white-space: nowrap;
+  }
+
+  &__tagline {
+    font-family: var(--font-script);
+    font-size: 1.1rem;
+    color: var(--color-text-muted);
+  }
+
+  &__links {
+    display: flex;
+    gap: 1.75rem;
+    flex-wrap: wrap;
+    order: 3;
+    width: 100%;
+    justify-content: center;
+
+    a {
+      font-family: var(--font-sans);
+      font-size: 0.95rem;
+      font-weight: 500;
+      color: var(--color-text);
+      text-decoration: none;
+      white-space: nowrap;
+
+      &:hover {
+        color: var(--color-blush-deep);
+      }
+    }
+  }
+
+  &__search {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--color-blush-soft);
+    border: 1px solid var(--color-blush-border);
+    border-radius: 999px;
+    padding: 0.55rem 1.1rem;
+    flex: 1 1 220px;
+    max-width: 320px;
+
+    input {
+      border: none;
+      background: transparent;
+      outline: none;
+      font-family: var(--font-sans);
+      font-size: 0.95rem;
+      color: var(--color-text);
+      width: 100%;
+
+      &::placeholder {
+        color: var(--color-blush-deep);
+        opacity: 0.75;
+      }
+    }
+
+    svg {
+      width: 1rem;
+      height: 1rem;
+      flex-shrink: 0;
+      color: var(--color-blush-deep);
+    }
+  }
+
+  &__actions {
+    display: flex;
+    gap: 1.5rem;
+  }
+
+  &__action {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.2rem;
+    background: none;
+    border: none;
+    font-family: var(--font-sans);
+    font-size: 0.75rem;
+    letter-spacing: 0.03em;
+    color: var(--color-text);
+    padding: 0;
+
+    svg {
+      width: 1.3rem;
+      height: 1.3rem;
+    }
+
+    &:hover {
+      color: var(--color-blush-deep);
+    }
+  }
+
+  &__action-wrapper {
+    position: relative;
+    display: flex;
+  }
+
+  &__dropdown {
+    position: absolute;
+    top: calc(100% + 0.9rem);
+    right: -0.5rem;
+    width: 19rem;
+    max-height: 22rem;
+    overflow-y: auto;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    box-shadow: 0 16px 40px rgba(43, 36, 32, 0.14);
+    padding: 0.85rem;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-6px);
+    transition:
+      opacity 0.15s ease,
+      transform 0.15s ease,
+      visibility 0.15s;
+    z-index: 30;
+  }
+
+  &__action-wrapper:hover &__dropdown {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+
+  &__dropdown-empty {
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+    text-align: center;
+    padding: 0.75rem 0.5rem;
+  }
+
+  &__dropdown-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+  }
+
+  &__dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+
+    img {
+      width: 2.75rem;
+      height: 2.75rem;
+      object-fit: cover;
+      border-radius: 4px;
+      flex-shrink: 0;
+    }
+  }
+
+  &__dropdown-info {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+    text-align: left;
+  }
+
+  &__dropdown-name {
+    font-size: 0.8rem;
+    color: var(--color-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__dropdown-price {
+    font-size: 0.75rem;
+    color: var(--color-blush-deep);
+  }
+
+  &__dropdown-remove {
+    flex-shrink: 0;
+    width: 1.6rem;
+    height: 1.6rem;
+    border-radius: 50%;
+    border: none;
+    background: var(--color-bg-alt);
+    color: var(--color-text-muted);
+    font-size: 1.1rem;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+
+    &:hover {
+      background: var(--color-blush-soft);
+      color: var(--color-blush-deep);
+    }
+  }
+
+  @media (min-width: 1100px) {
+    flex-wrap: nowrap;
+
+    &__links {
+      order: initial;
+      width: auto;
+    }
+  }
+}

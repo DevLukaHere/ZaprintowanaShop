@@ -1,0 +1,13 @@
+<section class="why">
+  <h2 class="section-title">Dlaczego My</h2>
+
+  <div class="why__grid">
+    @for (feature of features; track feature.label) {
+      <div class="why__item">
+        <span class="why__stat">{{ feature.stat }}</span>
+        <span class="why__label">{{ feature.label }}</span>
+        <p class="why__description">{{ feature.description }}</p>
+      </div>
+    }
+  </div>
+</section>
