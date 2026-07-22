@@ -18,4 +18,12 @@
     color: var(--color-text);
     max-width: 30rem;
   }
+
+  @media (max-width: 600px) {
+    padding: 3rem 1.25rem;
+
+    &__title {
+      font-size: 1.2rem;
+    }
+  }
 }
