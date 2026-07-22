@@ -15,7 +15,7 @@ export const COLLECTIONS: Collection[] = [
     description: 'Kraftowa koperta i surowa, minimalistyczna typografia — prostota, która robi wrażenie',
     price: 'od 3,99 zł',
     theme: 'cream',
-    image: '/products/1.png',
+    image: 'products/1.png',
   },
   {
     id: 'golden-ribbon',
@@ -24,7 +24,7 @@ export const COLLECTIONS: Collection[] = [
     description: 'Jedwabna wstążka, suszone kwiatki i złote zdobienia na kremowym papierze',
     price: 'od 5,49 zł',
     theme: 'blush',
-    image: '/products/2.png',
+    image: 'products/2.png',
   },
   {
     id: 'emerald-bloom',
@@ -32,7 +32,7 @@ export const COLLECTIONS: Collection[] = [
     description: 'Butelkowa zieleń koperty, lawendowe kwiaty i pieczęć z lakowego wosku',
     price: 'od 4,75 zł',
     theme: 'sage',
-    image: '/products/3.png',
+    image: 'products/3.png',
   },
   {
     id: 'burgundy-romance',
@@ -40,7 +40,7 @@ export const COLLECTIONS: Collection[] = [
     description: 'Głęboki bordowy wykrój z suszonymi kwiatami — romantyczny i wyrazisty',
     price: 'od 4,50 zł',
     theme: 'wine',
-    image: '/products/4.png',
+    image: 'products/4.png',
   },
   {
     id: 'amalfi-stamp',
@@ -49,7 +49,7 @@ export const COLLECTIONS: Collection[] = [
     description: 'Pocztówkowy design ze znaczkiem i cytrynowym akcentem — ślub w klimacie podróży',
     price: 'od 5,25 zł',
     theme: 'slate',
-    image: '/products/5.png',
+    image: 'products/5.png',
   },
   {
     id: 'lemon-grove',
@@ -57,7 +57,7 @@ export const COLLECTIONS: Collection[] = [
     description: 'Szałwiowa koperta, różowa pieczęć i cytrynowy wzór na wykrojonej karcie',
     price: 'od 4,99 zł',
     theme: 'cream',
-    image: '/products/6.png',
+    image: 'products/6.png',
   },
   {
     id: 'monochrome-rose',
@@ -65,7 +65,7 @@ export const COLLECTIONS: Collection[] = [
     description: 'Czarno-biała elegancja, różany wzór, czarna wstążka i lakowa pieczęć',
     price: 'od 5,99 zł',
     theme: 'charcoal',
-    image: '/products/7.png',
+    image: 'products/7.png',
   },
   {
     id: 'sunflower-sage',
@@ -73,7 +73,7 @@ export const COLLECTIONS: Collection[] = [
     description: 'Grafitowa karta, słoneczniki i szałwiowa kokarda — ciepło późnego lata',
     price: 'od 4,60 zł',
     theme: 'sage',
-    image: '/products/8.png',
+    image: 'products/8.png',
   },
   {
     id: 'heart-cutout',
@@ -81,7 +81,7 @@ export const COLLECTIONS: Collection[] = [
     description: 'Różowy wykrój w kształcie serca z suszonymi kwiatami — czysty romantyzm',
     price: 'od 4,10 zł',
     theme: 'blush',
-    image: '/products/9.png',
+    image: 'products/9.png',
   },
   {
     id: 'ivory-stack',
@@ -89,7 +89,7 @@ export const COLLECTIONS: Collection[] = [
     description: 'Kremowe zaproszenia ze złotym brzegiem, kokardką i kwiatowym konfetti',
     price: 'od 3,80 zł',
     theme: 'cream',
-    image: '/products/10.png',
+    image: 'products/10.png',
   },
   {
     id: 'blush-notes',
@@ -97,7 +97,7 @@ export const COLLECTIONS: Collection[] = [
     description: 'Personalizowane karty z suszonymi kwiatami — poczuj klimat dnia ślubu',
     price: 'od 3,60 zł',
     theme: 'wine',
-    image: '/products/11.png',
+    image: 'products/11.png',
   },
   {
     id: 'newspaper-edition',
@@ -106,6 +106,6 @@ export const COLLECTIONS: Collection[] = [
     description: 'Niebanalne zaproszenie w formie gazety — historia Waszej pary jak z filmu',
     price: 'od 6,50 zł',
     theme: 'charcoal',
-    image: '/products/12.png',
+    image: 'products/12.png',
   },
 ];
