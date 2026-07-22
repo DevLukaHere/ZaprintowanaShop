@@ -1,0 +1,56 @@
+/* You can add global styles to this file, and also import other style files */
+
+:root {
+  --color-bg: #1c1917;
+  --color-bg-alt: #201d1b;
+  --color-surface: #262220;
+  --color-border: #3a352f;
+  --color-gold: #c9975c;
+  --color-gold-soft: #d9b585;
+  --color-text: #f3ede4;
+  --color-text-muted: #a89e92;
+
+  --color-emerald: #2f4a45;
+  --color-emerald-border: #3d5f58;
+  --color-midnight: #17181e;
+  --color-midnight-border: #2b2d38;
+  --color-blush: #4a3138;
+  --color-blush-border: #5e424a;
+
+  --font-serif: 'Cormorant Garamond', 'Georgia', serif;
+  --font-sans: 'Montserrat', 'Segoe UI', sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-serif);
+  font-weight: 500;
+  margin: 0;
+}
+
+p {
+  margin: 0;
+}
+
+button {
+  font-family: var(--font-sans);
+  cursor: pointer;
+}
