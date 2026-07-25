@@ -1,0 +1,162 @@
+<main class="page">
+  <app-navbar />
+
+  <section class="checkout">
+    <p class="eyebrow">Zamówienie</p>
+    <h1 class="section-title">Finalizacja zamówienia</h1>
+
+    @if (placedOrderId(); as orderId) {
+      <div class="checkout__success">
+        <h2>Dziękujemy za zamówienie!</h2>
+        <p>Numer Twojego zamówienia:</p>
+        <code class="checkout__order-id">{{ orderId }}</code>
+        <p class="checkout__success-note">
+          Potwierdzenie wyślemy na podany adres e-mail. Zachowaj numer zamówienia na wypadek
+          pytań.
+        </p>
+        <a class="btn btn--outline" routerLink="/">Wróć do sklepu</a>
+      </div>
+    } @else if (lines().length === 0) {
+      <div class="checkout__empty">
+        <p>Twój koszyk jest pusty.</p>
+        <a class="btn btn--outline" routerLink="/">Przejdź do produktów</a>
+      </div>
+    } @else {
+      <div class="checkout__layout">
+        <form class="checkout__form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+          <h2 class="checkout__form-title">Dane do wysyłki</h2>
+
+          <label class="field">
+            <span class="field__label">Imię i nazwisko *</span>
+            <input
+              type="text"
+              formControlName="customerName"
+              autocomplete="name"
+              [class.field__input--error]="isInvalid('customerName')"
+            />
+            @if (isInvalid('customerName')) {
+              <span class="field__error">Podaj imię i nazwisko</span>
+            }
+          </label>
+
+          <div class="checkout__row">
+            <label class="field">
+              <span class="field__label">E-mail *</span>
+              <input
+                type="email"
+                formControlName="customerEmail"
+                autocomplete="email"
+                [class.field__input--error]="isInvalid('customerEmail')"
+              />
+              @if (isInvalid('customerEmail')) {
+                <span class="field__error">Podaj poprawny adres e-mail</span>
+              }
+            </label>
+
+            <label class="field">
+              <span class="field__label">Telefon</span>
+              <input type="tel" formControlName="customerPhone" autocomplete="tel" />
+            </label>
+          </div>
+
+          <label class="field">
+            <span class="field__label">Adres (ulica i numer) *</span>
+            <input
+              type="text"
+              formControlName="shippingAddress"
+              autocomplete="street-address"
+              [class.field__input--error]="isInvalid('shippingAddress')"
+            />
+            @if (isInvalid('shippingAddress')) {
+              <span class="field__error">Podaj adres dostawy</span>
+            }
+          </label>
+
+          <div class="checkout__row">
+            <label class="field">
+              <span class="field__label">Kod pocztowy *</span>
+              <input
+                type="text"
+                formControlName="shippingPostcode"
+                placeholder="00-000"
+                autocomplete="postal-code"
+                [class.field__input--error]="isInvalid('shippingPostcode')"
+              />
+              @if (isInvalid('shippingPostcode')) {
+                <span class="field__error">Format: 00-000</span>
+              }
+            </label>
+
+            <label class="field">
+              <span class="field__label">Miasto *</span>
+              <input
+                type="text"
+                formControlName="shippingCity"
+                autocomplete="address-level2"
+                [class.field__input--error]="isInvalid('shippingCity')"
+              />
+              @if (isInvalid('shippingCity')) {
+                <span class="field__error">Podaj miasto</span>
+              }
+            </label>
+          </div>
+
+          <label class="field">
+            <span class="field__label">Uwagi do zamówienia</span>
+            <textarea rows="3" formControlName="notes"></textarea>
+          </label>
+
+          @if (errorMessage(); as message) {
+            <p class="checkout__error" role="alert">{{ message }}</p>
+          }
+
+          <button type="submit" class="btn btn--primary" [disabled]="submitting()">
+            {{ submitting() ? 'Wysyłanie…' : 'Złóż zamówienie' }}
+          </button>
+        </form>
+
+        <aside class="checkout__summary">
+          <h2 class="checkout__form-title">Twoje zamówienie</h2>
+
+          <ul class="checkout__items">
+            @for (line of lines(); track line.id) {
+              <li class="checkout__item">
+                @if (line.image) {
+                  <img [src]="line.image" [alt]="line.name" />
+                }
+                <div class="checkout__item-info">
+                  <span class="checkout__item-name">{{ line.name }}</span>
+                  <span class="checkout__item-price">{{ line.price }}</span>
+                </div>
+                <div class="checkout__qty">
+                  <button
+                    type="button"
+                    (click)="cart.setQuantity(line.id, line.qty - 1)"
+                    aria-label="Zmniejsz ilość"
+                  >
+                    −
+                  </button>
+                  <span>{{ line.qty }}</span>
+                  <button
+                    type="button"
+                    (click)="cart.setQuantity(line.id, line.qty + 1)"
+                    aria-label="Zwiększ ilość"
+                  >
+                    +
+                  </button>
+                </div>
+              </li>
+            }
+          </ul>
+
+          <p class="checkout__note">
+            Ceny produktów są cenami wyjściowymi („od”). Ostateczną wycenę potwierdzimy e-mailem
+            po ustaleniu szczegółów personalizacji.
+          </p>
+        </aside>
+      </div>
+    }
+  </section>
+
+  <app-footer />
+</main>

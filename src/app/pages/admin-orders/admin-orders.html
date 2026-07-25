@@ -1,0 +1,224 @@
+<div class="admin">
+  <header class="admin__header">
+    <div class="admin__brand">
+      <span class="admin__logo">Zaprintowana</span>
+      <span class="admin__subtitle">Panel administracyjny</span>
+    </div>
+
+    <div class="admin__account">
+      @if (adminEmail(); as email) {
+        <span class="admin__email">{{ email }}</span>
+      }
+      <a class="admin__link" routerLink="/">Sklep</a>
+      <button type="button" class="admin__signout" (click)="signOut()">Wyloguj</button>
+    </div>
+  </header>
+
+  <main class="admin__content">
+    <div class="admin__toolbar">
+      <div class="admin__filters">
+        <button
+          type="button"
+          class="admin__filter"
+          [class.admin__filter--active]="statusFilter() === 'all'"
+          (click)="statusFilter.set('all')"
+        >
+          Wszystkie
+          <span class="admin__filter-count">{{ countsByStatus()['all'] }}</span>
+        </button>
+
+        @for (status of statuses; track status) {
+          <button
+            type="button"
+            class="admin__filter"
+            [class.admin__filter--active]="statusFilter() === status"
+            (click)="statusFilter.set(status)"
+          >
+            {{ statusLabels[status] }}
+            <span class="admin__filter-count">{{ countsByStatus()[status] }}</span>
+          </button>
+        }
+
+        <span class="admin__filters-divider"></span>
+
+        <button
+          type="button"
+          class="admin__filter"
+          [class.admin__filter--active]="paymentFilter() === 'all'"
+          (click)="paymentFilter.set('all')"
+        >
+          Płatność: wszystkie
+        </button>
+        <button
+          type="button"
+          class="admin__filter"
+          [class.admin__filter--active]="paymentFilter() === 'unpaid'"
+          (click)="paymentFilter.set('unpaid')"
+        >
+          Nieopłacone
+          <span class="admin__filter-count">{{ countsByPayment()['unpaid'] }}</span>
+        </button>
+        <button
+          type="button"
+          class="admin__filter"
+          [class.admin__filter--active]="paymentFilter() === 'paid'"
+          (click)="paymentFilter.set('paid')"
+        >
+          Opłacone
+          <span class="admin__filter-count">{{ countsByPayment()['paid'] }}</span>
+        </button>
+      </div>
+
+      <div class="admin__toolbar-right">
+        <input
+          class="admin__search"
+          type="search"
+          placeholder="Szukaj: nazwisko, e-mail, miasto, ID…"
+          [value]="query()"
+          (input)="query.set($any($event.target).value)"
+        />
+        <button
+          type="button"
+          class="admin__refresh"
+          (click)="ordersService.reload()"
+          [disabled]="ordersService.isLoading()"
+        >
+          {{ ordersService.isLoading() ? 'Odświeżanie…' : 'Odśwież' }}
+        </button>
+      </div>
+    </div>
+
+    @if (statusError(); as message) {
+      <p class="admin__error" role="alert">{{ message }}</p>
+    }
+
+    @if (ordersService.error(); as loadError) {
+      <p class="admin__error" role="alert">
+        Nie udało się pobrać zamówień: {{ loadError.message }}
+      </p>
+    } @else if (ordersService.isLoading() && !ordersService.orders()) {
+      <p class="admin__placeholder">Ładowanie zamówień…</p>
+    } @else if (visibleOrders().length === 0) {
+      <p class="admin__placeholder">
+        @if ((ordersService.orders() ?? []).length === 0) {
+          Nie ma jeszcze żadnych zamówień.
+        } @else {
+          Brak zamówień spełniających wybrane kryteria.
+        }
+      </p>
+    } @else {
+      <div class="admin__table-wrap">
+        <table class="admin__table">
+          <thead>
+            <tr>
+              <th>
+                <button type="button" class="admin__sort" (click)="toggleSort('created_at')">
+                  Data <span class="admin__sort-icon">{{ sortIndicator('created_at') }}</span>
+                </button>
+              </th>
+              <th>
+                <button type="button" class="admin__sort" (click)="toggleSort('customer_name')">
+                  Klient <span class="admin__sort-icon">{{ sortIndicator('customer_name') }}</span>
+                </button>
+              </th>
+              <th>Kontakt</th>
+              <th>
+                <button type="button" class="admin__sort" (click)="toggleSort('shipping_city')">
+                  Adres dostawy
+                  <span class="admin__sort-icon">{{ sortIndicator('shipping_city') }}</span>
+                </button>
+              </th>
+              <th>Produkty</th>
+              <th>
+                <button type="button" class="admin__sort" (click)="toggleSort('payment_status')">
+                  Płatność <span class="admin__sort-icon">{{ sortIndicator('payment_status') }}</span>
+                </button>
+              </th>
+              <th>
+                <button type="button" class="admin__sort" (click)="toggleSort('status')">
+                  Status <span class="admin__sort-icon">{{ sortIndicator('status') }}</span>
+                </button>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (order of visibleOrders(); track order.id) {
+              <tr>
+                <td class="admin__cell-date">
+                  {{ order.created_at | date: 'dd.MM.yyyy' }}
+                  <span class="admin__muted">{{ order.created_at | date: 'HH:mm' }}</span>
+                  <span class="admin__order-id" [title]="order.id">
+                    #{{ order.id.slice(0, 8) }}
+                  </span>
+                </td>
+
+                <td>
+                  <span class="admin__customer">{{ order.customer_name }}</span>
+                  @if (order.notes) {
+                    <span class="admin__notes" [title]="order.notes">Uwagi: {{ order.notes }}</span>
+                  }
+                </td>
+
+                <td class="admin__cell-contact">
+                  <a [href]="'mailto:' + order.customer_email">{{ order.customer_email }}</a>
+                  @if (order.customer_phone) {
+                    <a [href]="'tel:' + order.customer_phone">{{ order.customer_phone }}</a>
+                  }
+                </td>
+
+                <td class="admin__cell-address">
+                  {{ order.shipping_address }}<br />
+                  {{ order.shipping_postcode }} {{ order.shipping_city }}
+                </td>
+
+                <td>
+                  <ul class="admin__items">
+                    @for (item of order.order_items; track item.id) {
+                      <li>
+                        <span class="admin__item-qty">{{ item.quantity }}×</span>
+                        {{ item.product_name }}
+                        <span class="admin__muted">{{ item.product_price }}</span>
+                      </li>
+                    }
+                  </ul>
+                  <span class="admin__muted">Razem sztuk: {{ itemCount(order) }}</span>
+                </td>
+
+                <td>
+                  <button
+                    type="button"
+                    class="admin__payment"
+                    [class.admin__payment--paid]="order.payment_status === 'paid'"
+                    (click)="togglePaymentStatus(order)"
+                  >
+                    {{ paymentStatusLabels[order.payment_status] }}
+                  </button>
+                  @if (order.paid_at) {
+                    <span class="admin__muted admin__paid-at">
+                      {{ order.paid_at | date: 'dd.MM.yyyy HH:mm' }}
+                    </span>
+                  }
+                </td>
+
+                <td>
+                  <select
+                    class="admin__status"
+                    [class]="'admin__status--' + order.status"
+                    [value]="order.status"
+                    (change)="changeStatus(order.id, $event)"
+                  >
+                    @for (status of statuses; track status) {
+                      <option [value]="status" [selected]="status === order.status">
+                        {{ statusLabels[status] }}
+                      </option>
+                    }
+                  </select>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </main>
+</div>

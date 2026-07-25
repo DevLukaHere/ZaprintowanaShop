@@ -43,6 +43,20 @@ export class CartService {
     localStorage.setItem(CART_KEY, JSON.stringify(this.cart()));
   }
 
+  setQuantity(id: string, qty: number): void {
+    if (qty < 1) {
+      this.removeFromCart(id);
+      return;
+    }
+    this.cart.update((items) => ({ ...items, [id]: Math.min(qty, 999) }));
+    localStorage.setItem(CART_KEY, JSON.stringify(this.cart()));
+  }
+
+  clearCart(): void {
+    this.cart.set({});
+    localStorage.setItem(CART_KEY, JSON.stringify(this.cart()));
+  }
+
   isWishlisted(id: string): boolean {
     return this.wishlist().includes(id);
   }
