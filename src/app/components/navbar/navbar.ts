@@ -1,6 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
-import { COLLECTIONS, Collection } from '../../models/collection';
+import { Collection } from '../../models/collection';
 import { CartService } from '../../services/cart.service';
+import { ProductsService } from '../../services/products.service';
 
 @Component({
   selector: 'app-navbar',
@@ -10,6 +11,7 @@ import { CartService } from '../../services/cart.service';
 })
 export class Navbar {
   protected readonly cart = inject(CartService);
+  protected readonly products = inject(ProductsService);
   protected readonly mobileMenuOpen = signal(false);
   protected readonly panelOpen = signal(false);
   protected readonly panelContent = signal<'wishlist' | 'cart'>('wishlist');
@@ -32,6 +34,6 @@ export class Navbar {
   }
 
   protected getCollection(id: string): Collection | undefined {
-    return COLLECTIONS.find((collection) => collection.id === id);
+    return this.products.getById(id);
   }
 }

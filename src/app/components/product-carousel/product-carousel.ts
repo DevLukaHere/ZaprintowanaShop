@@ -1,6 +1,6 @@
-import { AfterViewInit, Component, ElementRef, inject, viewChild } from '@angular/core';
-import { COLLECTIONS } from '../../models/collection';
+import { AfterViewInit, Component, ElementRef, effect, inject, viewChild } from '@angular/core';
 import { CartService } from '../../services/cart.service';
+import { ProductsService } from '../../services/products.service';
 
 @Component({
   selector: 'app-product-carousel',
@@ -10,18 +10,35 @@ import { CartService } from '../../services/cart.service';
 })
 export class ProductCarousel implements AfterViewInit {
   protected readonly cart = inject(CartService);
-
-  protected readonly carouselItems = [...COLLECTIONS, ...COLLECTIONS];
+  protected readonly productsService = inject(ProductsService);
 
   private readonly carouselSpeedPxPerSecond = 24;
 
   private readonly carouselTrack = viewChild<ElementRef<HTMLElement>>('carouselTrack');
   private readonly carouselViewport = viewChild<ElementRef<HTMLElement>>('carouselViewport');
 
+  constructor() {
+    effect(() => {
+      const products = this.productsService.products();
+      if (products?.length) {
+        queueMicrotask(() => this.setupCarouselAnimation());
+      }
+    });
+  }
+
+  protected get carouselItems() {
+    const products = this.productsService.products() ?? [];
+    return [...products, ...products];
+  }
+
   ngAfterViewInit(): void {
+    this.setupCarouselAnimation();
+  }
+
+  private setupCarouselAnimation(): void {
     const track = this.carouselTrack()?.nativeElement;
     const viewport = this.carouselViewport()?.nativeElement;
-    if (!track || !viewport) {
+    if (!track || !viewport || track.children.length === 0) {
       return;
     }
 
