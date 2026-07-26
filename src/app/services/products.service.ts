@@ -6,7 +6,7 @@ import { Collection } from '../models/collection';
 export class ProductsService {
   private readonly productsResource = resource({
     loader: async () => {
-      const { data, error } = await supabase.from('Products').select('*');
+      const { data, error } = await supabase.from('products').select('*');
       if (error) {
         throw error;
       }
