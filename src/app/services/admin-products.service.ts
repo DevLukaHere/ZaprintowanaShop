@@ -31,8 +31,9 @@ export class AdminProductsService {
 
   async create(input: ProductInput, file: File | null): Promise<void> {
     const image = file ? await this.uploadImage(file) : input.image;
+    const id = crypto.randomUUID();
 
-    const { error } = await supabase.from('products').insert({ ...input, image });
+    const { error } = await supabase.from('products').insert({ id, ...input, image });
     if (error) {
       throw new Error(error.message);
     }

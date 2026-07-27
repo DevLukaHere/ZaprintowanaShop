@@ -3,11 +3,16 @@ import { HomePage } from './pages/home/home';
 import { adminGuard } from './guards/admin.guard';
 
 export const routes: Routes = [
-  { path: '', component: HomePage, title: 'Zaprintowana — zaproszenia ślubne' },
+  { path: '', component: HomePage, title: 'Zaprintowana - serio fajne kartki' },
   {
     path: 'checkout',
     title: 'Zamówienie — Zaprintowana',
     loadComponent: () => import('./pages/checkout/checkout').then((m) => m.CheckoutPage),
+  },
+  {
+    path: 'gallery',
+    title: 'Galeria produktów — Zaprintowana',
+    loadComponent: () => import('./pages/gallery/gallery').then((m) => m.GalleryPage),
   },
   {
     path: 'admin/login',

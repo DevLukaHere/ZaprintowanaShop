@@ -18,7 +18,7 @@ export interface OrderItem {
   id: number;
   product_id: string;
   product_name: string;
-  product_price: string;
+  product_price: number;
   quantity: number;
 }
 

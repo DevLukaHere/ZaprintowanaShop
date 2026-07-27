@@ -1,12 +1,13 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, ElementRef, inject, signal, viewChild } from '@angular/core';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AdminHeader } from '../../components/admin-header/admin-header';
-import { COLLECTION_THEMES, Collection, ProductInput } from '../../models/collection';
+import { Collection, ProductInput } from '../../models/collection';
+import { PricePipe } from '../../pipes/price.pipe';
 import { AdminProductsService } from '../../services/admin-products.service';
 
 @Component({
   selector: 'app-admin-products',
-  imports: [ReactiveFormsModule, AdminHeader],
+  imports: [ReactiveFormsModule, AdminHeader, PricePipe],
   templateUrl: './admin-products.html',
   styleUrl: './admin-products.scss',
 })
@@ -14,7 +15,6 @@ export class AdminProductsPage {
   private readonly formBuilder = inject(NonNullableFormBuilder);
 
   protected readonly productsService = inject(AdminProductsService);
-  protected readonly themes = COLLECTION_THEMES;
 
   protected readonly showForm = signal(false);
   protected readonly editingId = signal<string | null>(null);
@@ -22,15 +22,17 @@ export class AdminProductsPage {
   protected readonly submitting = signal(false);
   protected readonly formError = signal<string | null>(null);
   protected readonly deleteError = signal<string | null>(null);
+  protected readonly draggingFile = signal(false);
+
+  private readonly fileInput = viewChild<ElementRef<HTMLInputElement>>('fileInput');
 
   private selectedFile: File | null = null;
 
   protected readonly form = this.formBuilder.group({
     name: ['', Validators.required],
     description: ['', Validators.required],
-    price: ['', Validators.required],
+    price: this.formBuilder.control<number>(0, [Validators.required, Validators.min(0)]),
     badge: [''],
-    theme: this.formBuilder.control<Collection['theme']>('sage', Validators.required),
   });
 
   protected isInvalid(field: string): boolean {
@@ -43,7 +45,7 @@ export class AdminProductsPage {
     this.selectedFile = null;
     this.previewUrl.set(undefined);
     this.formError.set(null);
-    this.form.reset({ name: '', description: '', price: '', badge: '', theme: 'sage' });
+    this.form.reset({ name: '', description: '', price: 0, badge: '' });
     this.showForm.set(true);
   }
 
@@ -57,7 +59,6 @@ export class AdminProductsPage {
       description: product.description,
       price: product.price,
       badge: product.badge ?? '',
-      theme: product.theme,
     });
     this.showForm.set(true);
   }
@@ -68,6 +69,36 @@ export class AdminProductsPage {
 
   protected onFileSelected(event: Event): void {
     const file = (event.target as HTMLInputElement).files?.[0] ?? null;
+    this.setFile(file);
+  }
+
+  protected onFileDragOver(event: DragEvent): void {
+    event.preventDefault();
+    this.draggingFile.set(true);
+  }
+
+  protected onFileDragLeave(): void {
+    this.draggingFile.set(false);
+  }
+
+  protected onFileDrop(event: DragEvent): void {
+    event.preventDefault();
+    this.draggingFile.set(false);
+    const file = event.dataTransfer?.files?.[0] ?? null;
+    if (!file?.type.startsWith('image/')) {
+      return;
+    }
+
+    const input = this.fileInput()?.nativeElement;
+    if (input) {
+      const transfer = new DataTransfer();
+      transfer.items.add(file);
+      input.files = transfer.files;
+    }
+    this.setFile(file);
+  }
+
+  private setFile(file: File | null): void {
     this.selectedFile = file;
     this.previewUrl.set(file ? URL.createObjectURL(file) : undefined);
   }
@@ -78,12 +109,11 @@ export class AdminProductsPage {
       return;
     }
 
-    const { name, description, price, badge, theme } = this.form.getRawValue();
+    const { name, description, price, badge } = this.form.getRawValue();
     const input: ProductInput = {
       name,
       description,
       price,
-      theme,
       badge: badge || undefined,
     };
 

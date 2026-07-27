@@ -104,6 +104,13 @@ export class AdminOrdersPage {
     );
   });
 
+  protected refresh(): void {
+    this.statusFilter.set('all');
+    this.paymentFilter.set('all');
+    this.query.set('');
+    this.ordersService.reload();
+  }
+
   protected toggleSort(column: SortColumn): void {
     if (this.sortColumn() === column) {
       this.sortDirection.update((direction) => (direction === 'asc' ? 'desc' : 'asc'));
@@ -122,6 +129,11 @@ export class AdminOrdersPage {
 
   protected itemCount(order: Order): number {
     return order.order_items.reduce((sum, item) => sum + item.quantity, 0);
+  }
+
+  protected formatPrice(value: number): string {
+    const formatted = value % 1 === 0 ? value.toString() : value.toFixed(2).replace('.', ',');
+    return `${formatted} zł`;
   }
 
   protected async changeStatus(orderId: string, event: Event): Promise<void> {

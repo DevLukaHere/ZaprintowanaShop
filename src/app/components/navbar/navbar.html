@@ -15,15 +15,27 @@
     </svg>
   </button>
 
-  <div class="navbar__brand">
-    <span class="navbar__logo">Zaprintowana</span>
-    <span class="navbar__tagline">serio fajne kartki</span>
-  </div>
+  <a class="navbar__brand" routerLink="/">
+    <span class="navbar__brand-icon">
+      <svg class="navbar__brand-icon-default" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 3l2.2 5.8L20 11l-5.8 2.2L12 19l-2.2-5.8L4 11l5.8-2.2L12 3z"></path>
+      </svg>
+      <svg class="navbar__brand-icon-hover" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+        <path d="M12 3l2.2 5.8L20 11l-5.8 2.2L12 19l-2.2-5.8L4 11l5.8-2.2L12 3z"></path>
+      </svg>
+    </span>
+    <span class="navbar__brand-text">
+      <span class="navbar__logo">Zaprintowana</span>
+      <span class="navbar__tagline">serio fajne kartki</span>
+    </span>
+  </a>
 
   <nav class="navbar__links" [class.navbar__links--open]="mobileMenuOpen()">
-    <a href="#">Zaproszenia ślubne</a>
-    <a href="#">Dodatki ślubne</a>
-    <a href="#">Podziękowania</a>
+    <a href="#">Galeria produktów</a>
+    <a href="#">Zaproszenia</a>
+    <a href="#">Kartki</a>
+    <a href="#">Winietki</a>
+    <a href="#">Dodatki</a>
   </nav>
 
   <label class="navbar__search">
@@ -96,7 +108,7 @@
                 }
                 <div class="navbar__panel-info">
                   <span class="navbar__panel-name">{{ item.name }}</span>
-                  <span class="navbar__panel-price">{{ item.price }}</span>
+                  <span class="navbar__panel-price">{{ item.price | price }}</span>
                 </div>
                 <button
                   type="button"
@@ -129,7 +141,7 @@
                       × {{ entry.qty }}
                     }
                   </span>
-                  <span class="navbar__panel-price">{{ item.price }}</span>
+                  <span class="navbar__panel-price">{{ item.price | price }}</span>
                 </div>
                 <button
                   type="button"

@@ -25,6 +25,10 @@
       <div class="admin__grid">
         @for (product of productsService.products(); track product.id) {
           <article class="product-card">
+            @if (product.badge) {
+              <span class="product-card__badge">{{ product.badge }}</span>
+            }
+
             @if (productsService.imageUrl(product.image); as image) {
               <img class="product-card__image" [src]="image" [alt]="product.name" />
             } @else {
@@ -32,15 +36,9 @@
             }
 
             <div class="product-card__body">
-              @if (product.badge) {
-                <span class="product-card__badge">{{ product.badge }}</span>
-              }
               <h2 class="product-card__name">{{ product.name }}</h2>
               <p class="product-card__description">{{ product.description }}</p>
-              <div class="product-card__meta">
-                <span class="product-card__price">{{ product.price }}</span>
-                <span class="product-card__theme">{{ product.theme }}</span>
-              </div>
+              <span class="product-card__price">{{ product.price | price }}</span>
             </div>
 
             <div class="product-card__actions">
@@ -66,43 +64,55 @@
           {{ editingId() ? 'Edytuj produkt' : 'Nowy produkt' }}
         </h2>
 
-        <label class="field">
-          <span class="field__label">Nazwa</span>
-          <input type="text" formControlName="name" />
-        </label>
-
-        <label class="field">
-          <span class="field__label">Opis</span>
-          <textarea rows="3" formControlName="description"></textarea>
-        </label>
-
-        <label class="field">
-          <span class="field__label">Cena</span>
-          <input type="text" formControlName="price" placeholder="np. od 150 zł" />
-        </label>
-
-        <label class="field">
-          <span class="field__label">Odznaka (opcjonalnie)</span>
-          <input type="text" formControlName="badge" />
-        </label>
-
-        <label class="field">
-          <span class="field__label">Motyw</span>
-          <select formControlName="theme">
-            @for (theme of themes; track theme) {
-              <option [value]="theme">{{ theme }}</option>
+        <div class="admin-modal__layout">
+          <label
+            class="admin-modal__media"
+            [class.admin-modal__media--dragging]="draggingFile()"
+            (dragover)="onFileDragOver($event)"
+            (dragleave)="onFileDragLeave()"
+            (drop)="onFileDrop($event)"
+          >
+            @if (previewUrl(); as preview) {
+              <img class="admin-modal__preview" [src]="preview" alt="Podgląd zdjęcia" />
+            } @else {
+              <span class="admin-modal__preview admin-modal__preview--empty">Dodaj lub upuść zdjęcie</span>
             }
-          </select>
-        </label>
+            <span class="admin-modal__media-hint">
+              {{ previewUrl() ? 'Kliknij lub upuść, aby zmienić zdjęcie' : 'Kliknij lub upuść plik tutaj' }}
+            </span>
+            <input
+              #fileInput
+              class="admin-modal__file-input"
+              type="file"
+              accept="image/*"
+              (change)="onFileSelected($event)"
+            />
+          </label>
 
-        <label class="field">
-          <span class="field__label">Zdjęcie</span>
-          <input type="file" accept="image/*" (change)="onFileSelected($event)" />
-        </label>
+          <div class="admin-modal__fields">
+            <label class="field">
+              <span class="field__label">Nazwa</span>
+              <input type="text" formControlName="name" />
+            </label>
 
-        @if (previewUrl(); as preview) {
-          <img class="admin-modal__preview" [src]="preview" alt="Podgląd zdjęcia" />
-        }
+            <div class="field-row">
+              <label class="field">
+                <span class="field__label">Cena (zł)</span>
+                <input type="number" formControlName="price" min="0" step="0.01" placeholder="np. 150" />
+              </label>
+
+              <label class="field">
+                <span class="field__label">Odznaka</span>
+                <input type="text" formControlName="badge" placeholder="opcjonalnie" />
+              </label>
+            </div>
+
+            <label class="field field--grow">
+              <span class="field__label">Opis</span>
+              <textarea formControlName="description"></textarea>
+            </label>
+          </div>
+        </div>
 
         @if (formError(); as message) {
           <p class="admin__error" role="alert">{{ message }}</p>

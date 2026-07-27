@@ -1,7 +1,11 @@
 <header class="admin-header">
-  <div class="admin-header__brand">
-    <span class="admin-header__logo">Zaprintowana</span>
-    <span class="admin-header__subtitle">Panel administracyjny</span>
+  <div class="admin-header__brand-group">
+    <div class="admin-header__brand">
+      <span class="admin-header__logo">Zaprintowana</span>
+      <span class="admin-header__subtitle">Panel administracyjny</span>
+    </div>
+
+    <a class="admin-header__back" routerLink="/">Wróć do sklepu</a>
   </div>
 
   <nav class="admin-header__tabs">
@@ -25,7 +29,6 @@
     @if (adminEmail(); as email) {
       <span class="admin-header__email">{{ email }}</span>
     }
-    <a class="admin-header__link" routerLink="/">Sklep</a>
     <button type="button" class="admin-header__signout" (click)="signOut()">Wyloguj</button>
   </div>
 </header>

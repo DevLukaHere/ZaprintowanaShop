@@ -67,10 +67,10 @@
         <button
           type="button"
           class="admin__refresh"
-          (click)="ordersService.reload()"
+          (click)="refresh()"
           [disabled]="ordersService.isLoading()"
         >
-          {{ ordersService.isLoading() ? 'Odświeżanie…' : 'Odśwież' }}
+          Odśwież
         </button>
       </div>
     </div>
@@ -94,7 +94,12 @@
         }
       </p>
     } @else {
-      <div class="admin__table-wrap">
+      <div class="admin__table-wrap" [class.admin__table-wrap--loading]="ordersService.isLoading()">
+        @if (ordersService.isLoading()) {
+          <div class="admin__table-overlay">
+            <span class="admin__table-spinner" aria-hidden="true"></span>
+          </div>
+        }
         <table class="admin__table">
           <thead>
             <tr>
@@ -164,7 +169,7 @@
                       <li>
                         <span class="admin__item-qty">{{ item.quantity }}×</span>
                         {{ item.product_name }}
-                        <span class="admin__muted">{{ item.product_price }}</span>
+                        <span class="admin__muted">{{ formatPrice(item.product_price) }}</span>
                       </li>
                     }
                   </ul>

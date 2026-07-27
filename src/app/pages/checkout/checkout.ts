@@ -3,13 +3,14 @@ import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angula
 import { RouterLink } from '@angular/router';
 import { Footer } from '../../components/footer/footer';
 import { Navbar } from '../../components/navbar/navbar';
+import { PricePipe } from '../../pipes/price.pipe';
 import { CartService } from '../../services/cart.service';
 import { OrdersService } from '../../services/orders.service';
 import { ProductsService } from '../../services/products.service';
 
 @Component({
   selector: 'app-checkout',
-  imports: [ReactiveFormsModule, RouterLink, Navbar, Footer],
+  imports: [ReactiveFormsModule, RouterLink, Navbar, Footer, PricePipe],
   templateUrl: './checkout.html',
   styleUrl: './checkout.scss',
 })
@@ -43,7 +44,7 @@ export class CheckoutPage {
         id: entry.id,
         qty: entry.qty,
         name: product?.name ?? entry.id,
-        price: product?.price ?? '',
+        price: product?.price ?? 0,
         image: product?.image,
       };
     });
