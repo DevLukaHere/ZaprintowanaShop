@@ -1,0 +1,120 @@
+<div class="admin">
+  <app-admin-header active="products" />
+
+  <main class="admin__content">
+    <div class="admin__toolbar">
+      <h1 class="admin__title">Produkty</h1>
+      <button type="button" class="btn btn--primary" (click)="openCreate()">
+        Dodaj produkt
+      </button>
+    </div>
+
+    @if (deleteError(); as message) {
+      <p class="admin__error" role="alert">{{ message }}</p>
+    }
+
+    @if (productsService.error(); as loadError) {
+      <p class="admin__error" role="alert">
+        Nie udało się pobrać produktów: {{ loadError.message }}
+      </p>
+    } @else if (productsService.isLoading() && !productsService.products()) {
+      <p class="admin__placeholder">Ładowanie produktów…</p>
+    } @else if ((productsService.products() ?? []).length === 0) {
+      <p class="admin__placeholder">Nie ma jeszcze żadnych produktów.</p>
+    } @else {
+      <div class="admin__grid">
+        @for (product of productsService.products(); track product.id) {
+          <article class="product-card">
+            @if (productsService.imageUrl(product.image); as image) {
+              <img class="product-card__image" [src]="image" [alt]="product.name" />
+            } @else {
+              <div class="product-card__image product-card__image--empty"></div>
+            }
+
+            <div class="product-card__body">
+              @if (product.badge) {
+                <span class="product-card__badge">{{ product.badge }}</span>
+              }
+              <h2 class="product-card__name">{{ product.name }}</h2>
+              <p class="product-card__description">{{ product.description }}</p>
+              <div class="product-card__meta">
+                <span class="product-card__price">{{ product.price }}</span>
+                <span class="product-card__theme">{{ product.theme }}</span>
+              </div>
+            </div>
+
+            <div class="product-card__actions">
+              <button type="button" class="btn btn--outline" (click)="openEdit(product)">
+                Edytuj
+              </button>
+              <button type="button" class="product-card__delete" (click)="remove(product)">
+                Usuń
+              </button>
+            </div>
+          </article>
+        }
+      </div>
+    }
+  </main>
+
+  @if (showForm()) {
+    <div class="admin-modal">
+      <div class="admin-modal__backdrop" (click)="closeForm()"></div>
+
+      <form class="admin-modal__panel" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+        <h2 class="admin-modal__title">
+          {{ editingId() ? 'Edytuj produkt' : 'Nowy produkt' }}
+        </h2>
+
+        <label class="field">
+          <span class="field__label">Nazwa</span>
+          <input type="text" formControlName="name" />
+        </label>
+
+        <label class="field">
+          <span class="field__label">Opis</span>
+          <textarea rows="3" formControlName="description"></textarea>
+        </label>
+
+        <label class="field">
+          <span class="field__label">Cena</span>
+          <input type="text" formControlName="price" placeholder="np. od 150 zł" />
+        </label>
+
+        <label class="field">
+          <span class="field__label">Odznaka (opcjonalnie)</span>
+          <input type="text" formControlName="badge" />
+        </label>
+
+        <label class="field">
+          <span class="field__label">Motyw</span>
+          <select formControlName="theme">
+            @for (theme of themes; track theme) {
+              <option [value]="theme">{{ theme }}</option>
+            }
+          </select>
+        </label>
+
+        <label class="field">
+          <span class="field__label">Zdjęcie</span>
+          <input type="file" accept="image/*" (change)="onFileSelected($event)" />
+        </label>
+
+        @if (previewUrl(); as preview) {
+          <img class="admin-modal__preview" [src]="preview" alt="Podgląd zdjęcia" />
+        }
+
+        @if (formError(); as message) {
+          <p class="admin__error" role="alert">{{ message }}</p>
+        }
+
+        <div class="admin-modal__actions">
+          <button type="button" class="btn btn--outline" (click)="closeForm()">Anuluj</button>
+          <button type="submit" class="btn btn--primary" [disabled]="submitting()">
+            {{ submitting() ? 'Zapisywanie…' : 'Zapisz' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  }
+</div>

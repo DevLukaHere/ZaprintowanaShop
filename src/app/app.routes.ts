@@ -20,5 +20,12 @@ export const routes: Routes = [
     canActivate: [adminGuard],
     loadComponent: () => import('./pages/admin-orders/admin-orders').then((m) => m.AdminOrdersPage),
   },
+  {
+    path: 'admin/products',
+    title: 'Panel — produkty',
+    canActivate: [adminGuard],
+    loadComponent: () =>
+      import('./pages/admin-products/admin-products').then((m) => m.AdminProductsPage),
+  },
   { path: '**', redirectTo: '' },
 ];

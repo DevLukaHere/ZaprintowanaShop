@@ -1,0 +1,31 @@
+<header class="admin-header">
+  <div class="admin-header__brand">
+    <span class="admin-header__logo">Zaprintowana</span>
+    <span class="admin-header__subtitle">Panel administracyjny</span>
+  </div>
+
+  <nav class="admin-header__tabs">
+    <a
+      class="admin-header__tab"
+      [class.admin-header__tab--active]="active() === 'orders'"
+      routerLink="/admin"
+    >
+      Zamówienia
+    </a>
+    <a
+      class="admin-header__tab"
+      [class.admin-header__tab--active]="active() === 'products'"
+      routerLink="/admin/products"
+    >
+      Produkty
+    </a>
+  </nav>
+
+  <div class="admin-header__account">
+    @if (adminEmail(); as email) {
+      <span class="admin-header__email">{{ email }}</span>
+    }
+    <a class="admin-header__link" routerLink="/">Sklep</a>
+    <button type="button" class="admin-header__signout" (click)="signOut()">Wyloguj</button>
+  </div>
+</header>

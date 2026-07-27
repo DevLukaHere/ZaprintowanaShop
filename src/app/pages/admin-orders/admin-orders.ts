@@ -1,6 +1,6 @@
 import { DatePipe } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { AdminHeader } from '../../components/admin-header/admin-header';
 import {
   ORDER_STATUS_LABELS,
   Order,
@@ -8,7 +8,6 @@ import {
   PAYMENT_STATUS_LABELS,
   PaymentStatus,
 } from '../../models/order';
-import { AuthService } from '../../services/auth.service';
 import { OrdersService } from '../../services/orders.service';
 
 const ALL_STATUSES: OrderStatus[] = ['new', 'in_progress', 'done', 'cancelled'];
@@ -22,20 +21,16 @@ const PAYMENT_ORDER: Record<PaymentStatus, number> = { unpaid: 0, paid: 1 };
 
 @Component({
   selector: 'app-admin-orders',
-  imports: [DatePipe, RouterLink],
+  imports: [DatePipe, AdminHeader],
   templateUrl: './admin-orders.html',
   styleUrl: './admin-orders.scss',
 })
 export class AdminOrdersPage {
-  private readonly auth = inject(AuthService);
-  private readonly router = inject(Router);
-
   protected readonly ordersService = inject(OrdersService);
 
   protected readonly statusLabels = ORDER_STATUS_LABELS;
   protected readonly statuses = ALL_STATUSES;
   protected readonly paymentStatusLabels = PAYMENT_STATUS_LABELS;
-  protected readonly adminEmail = this.auth.userEmail;
 
   protected readonly statusFilter = signal<OrderStatus | 'all'>('all');
   protected readonly paymentFilter = signal<PaymentStatus | 'all'>('all');
@@ -151,10 +146,5 @@ export class AdminOrdersPage {
         error instanceof Error ? error.message : 'Nie udało się zmienić statusu płatności.',
       );
     }
-  }
-
-  protected async signOut(): Promise<void> {
-    await this.auth.signOut();
-    await this.router.navigate(['/admin/login']);
   }
 }

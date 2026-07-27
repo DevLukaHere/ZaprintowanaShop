@@ -1,18 +1,5 @@
 <div class="admin">
-  <header class="admin__header">
-    <div class="admin__brand">
-      <span class="admin__logo">Zaprintowana</span>
-      <span class="admin__subtitle">Panel administracyjny</span>
-    </div>
-
-    <div class="admin__account">
-      @if (adminEmail(); as email) {
-        <span class="admin__email">{{ email }}</span>
-      }
-      <a class="admin__link" routerLink="/">Sklep</a>
-      <button type="button" class="admin__signout" (click)="signOut()">Wyloguj</button>
-    </div>
-  </header>
+  <app-admin-header active="orders" />
 
   <main class="admin__content">
     <div class="admin__toolbar">
