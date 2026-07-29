@@ -1,7 +1,20 @@
 import { Injectable, computed, signal } from '@angular/core';
+import { OrderMode, cartTotals, lineTotals, unitPrice } from '../core/pricing';
+import { Collection } from '../models/collection';
+import { ProductConfiguration, emptyConfiguration } from '../models/product-options';
 
-const CART_KEY = 'zaprintowana:cart';
+const CART_KEY = 'zaprintowana:cart:v2';
+const LEGACY_CART_KEY = 'zaprintowana:cart';
 const WISHLIST_KEY = 'zaprintowana:wishlist';
+
+export interface CartLine {
+  key: string;
+  productId: string;
+  quantity: number;
+  mode: OrderMode;
+  configuration: ProductConfiguration;
+  unitPrice: number;
+}
 
 function readJson<T>(key: string, fallback: T): T {
   if (typeof localStorage === 'undefined') {
@@ -15,46 +28,108 @@ function readJson<T>(key: string, fallback: T): T {
   }
 }
 
+function configurationKey(
+  productId: string,
+  mode: OrderMode,
+  configuration: ProductConfiguration,
+): string {
+  const parts = [
+    productId,
+    mode,
+    configuration.paperId ?? '',
+    configuration.foilId ?? '',
+    configuration.envelopeId ?? '',
+    configuration.guestPersonalisation ? 'guests' : '',
+    configuration.envelopePrintId ?? '',
+    configuration.envelopeText ?? '',
+    configuration.express ? 'express' : '',
+    JSON.stringify(
+      Object.entries(configuration.personalisation ?? {})
+        .filter(([, value]) => !!value)
+        .sort(([a], [b]) => a.localeCompare(b)),
+    ),
+  ];
+  return parts.join('|');
+}
+
 @Injectable({ providedIn: 'root' })
 export class CartService {
-  private readonly cart = signal<Record<string, number>>(readJson(CART_KEY, {}));
+  private readonly lineList = signal<CartLine[]>(this.load());
   private readonly wishlist = signal<string[]>(readJson(WISHLIST_KEY, []));
 
+  readonly lines = this.lineList.asReadonly();
+
   readonly cartCount = computed(() =>
-    Object.values(this.cart()).reduce((sum, qty) => sum + qty, 0),
+    this.lineList().reduce((sum, line) => sum + line.quantity, 0),
   );
   readonly wishlistCount = computed(() => this.wishlist().length);
+  readonly wishlistIds = this.wishlist.asReadonly();
 
-  readonly cartEntries = computed(() =>
-    Object.entries(this.cart()).map(([id, qty]) => ({ id, qty })),
-  );
-  readonly wishlistIds = computed(() => this.wishlist());
+  readonly totals = computed(() => cartTotals(this.lineList()));
 
-  addToCart(id: string): void {
-    this.cart.update((items) => ({ ...items, [id]: (items[id] ?? 0) + 1 }));
-    localStorage.setItem(CART_KEY, JSON.stringify(this.cart()));
+  private load(): CartLine[] {
+    const lines = readJson<CartLine[]>(CART_KEY, []);
+    if (typeof localStorage !== 'undefined') {
+      localStorage.removeItem(LEGACY_CART_KEY);
+    }
+    return Array.isArray(lines) ? lines.filter((line) => !!line?.productId) : [];
   }
 
-  removeFromCart(id: string): void {
-    this.cart.update((items) => {
-      const { [id]: _removed, ...rest } = items;
-      return rest;
+  private persist(): void {
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem(CART_KEY, JSON.stringify(this.lineList()));
+    }
+  }
+
+  lineTotals(line: CartLine) {
+    return lineTotals(line);
+  }
+
+  add(
+    product: Collection,
+    configuration: ProductConfiguration = emptyConfiguration(),
+    quantity = 1,
+    mode: OrderMode = 'standard',
+  ): void {
+    const key = configurationKey(product.id, mode, configuration);
+    const price = unitPrice(product, configuration);
+
+    this.lineList.update((lines) => {
+      const existing = lines.find((line) => line.key === key);
+      if (existing) {
+        return lines.map((line) =>
+          line.key === key ? { ...line, quantity: line.quantity + quantity } : line,
+        );
+      }
+      return [
+        ...lines,
+        { key, productId: product.id, quantity, mode, configuration, unitPrice: price },
+      ];
     });
-    localStorage.setItem(CART_KEY, JSON.stringify(this.cart()));
+    this.persist();
   }
 
-  setQuantity(id: string, qty: number): void {
-    if (qty < 1) {
-      this.removeFromCart(id);
+  remove(key: string): void {
+    this.lineList.update((lines) => lines.filter((line) => line.key !== key));
+    this.persist();
+  }
+
+  setQuantity(key: string, quantity: number): void {
+    if (quantity < 1) {
+      this.remove(key);
       return;
     }
-    this.cart.update((items) => ({ ...items, [id]: Math.min(qty, 999) }));
-    localStorage.setItem(CART_KEY, JSON.stringify(this.cart()));
+    this.lineList.update((lines) =>
+      lines.map((line) =>
+        line.key === key ? { ...line, quantity: Math.min(quantity, 9999) } : line,
+      ),
+    );
+    this.persist();
   }
 
   clearCart(): void {
-    this.cart.set({});
-    localStorage.setItem(CART_KEY, JSON.stringify(this.cart()));
+    this.lineList.set([]);
+    this.persist();
   }
 
   isWishlisted(id: string): boolean {
@@ -65,6 +140,8 @@ export class CartService {
     this.wishlist.update((ids) =>
       ids.includes(id) ? ids.filter((existing) => existing !== id) : [...ids, id],
     );
-    localStorage.setItem(WISHLIST_KEY, JSON.stringify(this.wishlist()));
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem(WISHLIST_KEY, JSON.stringify(this.wishlist()));
+    }
   }
 }

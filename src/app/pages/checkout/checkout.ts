@@ -3,6 +3,9 @@ import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angula
 import { RouterLink } from '@angular/router';
 import { Footer } from '../../components/footer/footer';
 import { Navbar } from '../../components/navbar/navbar';
+import { configurationSummaryText, describeConfiguration } from '../../core/configuration-summary';
+import { MIN_QUANTITY } from '../../models/pricing';
+import { resolveEnvelopePrintOptions } from '../../models/product-options';
 import { PricePipe } from '../../pipes/price.pipe';
 import { CartService } from '../../services/cart.service';
 import { OrdersService } from '../../services/orders.service';
@@ -35,28 +38,58 @@ export class CheckoutPage {
     notes: [''],
   });
 
-  /** Cart entries joined with product details for display. */
   protected readonly lines = computed(() => {
-    const products = this.productsService.products() ?? [];
-    return this.cart.cartEntries().map((entry) => {
-      const product = products.find((candidate) => candidate.id === entry.id);
+    return this.cart.lines().map((line) => {
+      const product = this.productsService.getById(line.productId);
       return {
-        id: entry.id,
-        qty: entry.qty,
-        name: product?.name ?? entry.id,
-        price: product?.price ?? 0,
-        image: product?.image,
+        line,
+        name: product?.name ?? line.productId,
+        imageUrl: product?.imageUrl,
+        details: describeConfiguration(product, line.configuration, line.mode),
+        totals: this.cart.lineTotals(line),
       };
     });
   });
+
+  protected readonly totals = this.cart.totals;
+  protected readonly minQuantity = MIN_QUANTITY;
+
+  protected readonly needsGuestList = computed(() =>
+    this.cart.lines().some((line) => {
+      if (!line.configuration.guestPersonalisation || line.mode === 'sample') {
+        return false;
+      }
+      const product = this.productsService.getById(line.productId);
+      return resolveEnvelopePrintOptions(product?.envelope_print).some(
+        (option) => option.id === line.configuration.envelopePrintId && option.requiresGuestList,
+      );
+    }),
+  );
 
   protected isInvalid(field: string): boolean {
     const control = this.form.get(field);
     return !!control && control.invalid && control.touched;
   }
 
+  private notesWithConfiguration(notes: string): string {
+    const summaries = this.cart
+      .lines()
+      .map((line) => {
+        const product = this.productsService.getById(line.productId);
+        const summary = configurationSummaryText(product, line.configuration, line.mode);
+        const name = product?.name ?? line.productId;
+        return summary ? `• ${name} × ${line.quantity} — ${summary}` : '';
+      })
+      .filter(Boolean);
+
+    if (summaries.length === 0) {
+      return notes;
+    }
+    return [notes.trim(), 'Konfiguracja:', ...summaries].filter(Boolean).join('\n');
+  }
+
   protected async submit(): Promise<void> {
-    if (this.form.invalid || this.cart.cartEntries().length === 0) {
+    if (this.form.invalid || this.cart.lines().length === 0) {
       this.form.markAllAsTouched();
       return;
     }
@@ -65,9 +98,10 @@ export class CheckoutPage {
     this.errorMessage.set(null);
 
     try {
+      const details = this.form.getRawValue();
       const orderId = await this.orders.createOrder(
-        this.form.getRawValue(),
-        this.cart.cartEntries(),
+        { ...details, notes: this.notesWithConfiguration(details.notes) },
+        this.cart.lines(),
       );
       this.placedOrderId.set(orderId);
       this.cart.clearCart();

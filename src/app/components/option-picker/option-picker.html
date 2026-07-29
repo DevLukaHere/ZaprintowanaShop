@@ -1,0 +1,33 @@
+<div class="option-picker">
+  <div class="option-picker__header">
+    <span class="option-picker__label">{{ label() }}</span>
+    @if (selected(); as option) {
+      <span class="option-picker__selected">
+        {{ option.label }}
+        @if (option.price > 0) {
+          <span class="option-picker__price">+ {{ option.price | price }}</span>
+        }
+      </span>
+    }
+  </div>
+
+  <div class="option-picker__swatches">
+    @for (option of options(); track option.id) {
+      <button
+        type="button"
+        class="option-picker__swatch"
+        [class.option-picker__swatch--active]="option.id === selectedId()"
+        (click)="select(option)"
+        [title]="option.label"
+        [attr.aria-label]="option.label"
+        [attr.aria-pressed]="option.id === selectedId()"
+      >
+        @if (option.image) {
+          <img [src]="option.image" alt="" />
+        } @else {
+          <span class="option-picker__fill" [style.background]="option.swatch || '#ffffff'"></span>
+        }
+      </button>
+    }
+  </div>
+</div>

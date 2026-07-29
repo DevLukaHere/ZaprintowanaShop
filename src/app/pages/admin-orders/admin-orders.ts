@@ -2,8 +2,13 @@ import { DatePipe } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { AdminHeader } from '../../components/admin-header/admin-header';
 import {
+  ConfigurationDetail,
+  describeConfiguration,
+} from '../../core/configuration-summary';
+import {
   ORDER_STATUS_LABELS,
   Order,
+  OrderItem,
   OrderStatus,
   PAYMENT_STATUS_LABELS,
   PaymentStatus,
@@ -129,6 +134,14 @@ export class AdminOrdersPage {
 
   protected itemCount(order: Order): number {
     return order.order_items.reduce((sum, item) => sum + item.quantity, 0);
+  }
+
+  protected itemConfiguration(item: OrderItem): ConfigurationDetail[] | null {
+    if (!item.configuration) {
+      return null;
+    }
+    const details = describeConfiguration(undefined, item.configuration);
+    return details.length ? details : null;
   }
 
   protected formatPrice(value: number): string {

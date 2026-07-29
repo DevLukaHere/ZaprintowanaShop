@@ -1,0 +1,31 @@
+<nav class="category-bar" aria-label="Kategorie">
+  @if (main(); as category) {
+    <a
+      class="category-bar__link"
+      [routerLink]="['/kategoria', category.slug]"
+      routerLinkActive="category-bar__link--active"
+      [routerLinkActiveOptions]="{ exact: true }"
+    >
+      Wszystkie {{ category.label.toLowerCase() }}
+    </a>
+    @for (sub of category.subcategories; track sub.slug) {
+      <a
+        class="category-bar__link"
+        [routerLink]="['/kategoria', category.slug, sub.slug]"
+        routerLinkActive="category-bar__link--active"
+      >
+        {{ sub.label }}
+      </a>
+    }
+  } @else {
+    @for (category of mainCategories; track category.slug) {
+      <a
+        class="category-bar__link"
+        [routerLink]="['/kategoria', category.slug]"
+        routerLinkActive="category-bar__link--active"
+      >
+        {{ category.label }}
+      </a>
+    }
+  }
+</nav>

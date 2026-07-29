@@ -10,34 +10,9 @@
       (pointercancel)="onPointerUp($event)"
     >
       @for (collection of carouselItems; track $index) {
-        <article class="card carousel__item">
-          @if (collection.badge) {
-            <span class="card__badge">{{ collection.badge }}</span>
-          }
-
-          <button
-            type="button"
-            class="card__wishlist"
-            [class.card__wishlist--active]="cart.isWishlisted(collection.id)"
-            (click)="cart.toggleWishlist(collection.id)"
-            [attr.aria-label]="'Dodaj ' + collection.name + ' do ulubionych'"
-            [attr.aria-pressed]="cart.isWishlisted(collection.id)"
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 1 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-            </svg>
-          </button>
-
-          @if (collection.image) {
-            <img class="card__image" [src]="collection.image" [alt]="collection.name" draggable="false" />
-          } @else {
-            <span class="card__image card__image--placeholder"></span>
-          }
-          <div class="card__body">
-            <h3 class="card__name">{{ collection.name }}</h3>
-            <p class="card__description">{{ collection.description }}</p>
-          </div>
-        </article>
+        <div class="carousel__item">
+          <app-product-card [product]="collection" />
+        </div>
       }
     </div>
   </div>

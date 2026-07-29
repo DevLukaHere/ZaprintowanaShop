@@ -121,19 +121,91 @@
     order: 3;
     width: 100%;
     justify-content: center;
+  }
+
+  &__nav-item {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.2rem;
+  }
+
+  &__nav-link {
+    font-family: var(--font-sans);
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--color-text);
+    text-decoration: none;
+    white-space: nowrap;
+    padding: 0.35rem 0;
+
+    &:hover {
+      color: var(--color-blush-deep);
+    }
+  }
+
+  &__nav-toggle {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: none;
+    padding: 0.25rem;
+    color: var(--color-text-muted);
+
+    svg {
+      width: 0.9rem;
+      height: 0.9rem;
+      transition: transform 0.2s ease;
+    }
+  }
+
+  &__dropdown {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    display: none;
+    gap: 2.5rem;
+    padding: 1.4rem 1.9rem;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    box-shadow: 0 16px 36px rgba(43, 36, 32, 0.14);
+    z-index: 30;
+    white-space: nowrap;
 
     a {
       font-family: var(--font-sans);
-      font-size: 0.95rem;
-      font-weight: 500;
+      font-size: 0.88rem;
       color: var(--color-text);
       text-decoration: none;
-      white-space: nowrap;
+      padding: 0.18rem 0;
 
       &:hover {
         color: var(--color-blush-deep);
       }
     }
+  }
+
+  &__nav-item:hover &__dropdown,
+  &__nav-item--open &__dropdown {
+    display: flex;
+  }
+
+  &__dropdown-column {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+
+  &__dropdown-heading {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--color-blush-deep);
+    margin-bottom: 0.4rem;
   }
 
   &__search {
@@ -279,7 +351,7 @@
       grid-area: links;
       display: none;
       flex-direction: column;
-      align-items: center;
+      align-items: stretch;
       gap: 0.9rem;
       width: 100%;
 
@@ -287,10 +359,52 @@
         display: flex;
       }
     }
+
+    &__nav-item {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0;
+    }
+
+    &__nav-link {
+      flex: 1;
+    }
+
+    &__nav-toggle {
+      display: flex;
+      position: absolute;
+      top: 0;
+      right: 0;
+      height: 1.9rem;
+    }
+
+    &__nav-item:hover &__dropdown {
+      display: none;
+    }
+
+    &__dropdown {
+      position: static;
+      transform: none;
+      flex-direction: column;
+      gap: 0.9rem;
+      box-shadow: none;
+      border: none;
+      border-left: 2px solid var(--color-blush-soft);
+      border-radius: 0;
+      padding: 0.6rem 0 0.6rem 1rem;
+      background: transparent;
+    }
+
+    &__nav-item--open &__dropdown {
+      display: flex;
+    }
+
+    &__nav-item--open &__nav-toggle svg {
+      transform: rotate(180deg);
+    }
   }
 }
 
-/* Wishlist / cart sliding panel */
 .navbar__backdrop {
   position: fixed;
   inset: 0;
@@ -377,6 +491,16 @@
     display: flex;
     align-items: center;
     gap: 0.85rem;
+  }
+
+  &-link {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    flex: 1;
+    min-width: 0;
+    text-decoration: none;
+    color: inherit;
 
     img {
       width: 3.5rem;
@@ -384,6 +508,34 @@
       object-fit: cover;
       border-radius: 4px;
       flex-shrink: 0;
+    }
+
+    &:hover .navbar__panel-name {
+      color: var(--color-blush-deep);
+    }
+  }
+
+  &-config {
+    display: flex;
+    flex-direction: column;
+    font-size: 0.72rem;
+    line-height: 1.35;
+    color: var(--color-text-muted);
+    margin: 0.15rem 0;
+  }
+
+  &-total {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 1.25rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--color-border);
+    font-size: 0.9rem;
+
+    strong {
+      font-size: 1.1rem;
+      color: var(--color-blush-deep);
     }
   }
 
@@ -429,7 +581,8 @@
   }
 
   &-checkout {
-    margin-top: 1.5rem;
+    display: block;
+    margin-top: 1.25rem;
     text-align: center;
     text-decoration: none;
   }

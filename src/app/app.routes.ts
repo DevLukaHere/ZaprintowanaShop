@@ -2,6 +2,9 @@ import { Routes } from '@angular/router';
 import { HomePage } from './pages/home/home';
 import { adminGuard } from './guards/admin.guard';
 
+const catalog = () => import('./pages/catalog/catalog').then((m) => m.CatalogPage);
+const product = () => import('./pages/product/product').then((m) => m.ProductPage);
+
 export const routes: Routes = [
   { path: '', component: HomePage, title: 'Zaprintowana - serio fajne kartki' },
   {
@@ -9,10 +12,20 @@ export const routes: Routes = [
     title: 'Zamówienie — Zaprintowana',
     loadComponent: () => import('./pages/checkout/checkout').then((m) => m.CheckoutPage),
   },
+  { path: 'gallery', redirectTo: 'sklep', pathMatch: 'full' },
+  { path: 'sklep', title: 'Wszystkie produkty — Zaprintowana', loadComponent: catalog },
+  { path: 'kategoria/:category', title: 'Kategoria — Zaprintowana', loadComponent: catalog },
   {
-    path: 'gallery',
-    title: 'Galeria produktów — Zaprintowana',
-    loadComponent: () => import('./pages/gallery/gallery').then((m) => m.GalleryPage),
+    path: 'kategoria/:category/:subcategory',
+    title: 'Kategoria — Zaprintowana',
+    loadComponent: catalog,
+  },
+  { path: 'produkt/:id', title: 'Produkt — Zaprintowana', loadComponent: product },
+  {
+    path: 'produkt/:id/probka',
+    title: 'Zamów próbne zaproszenie — Zaprintowana',
+    data: { mode: 'sample' },
+    loadComponent: product,
   },
   {
     path: 'admin/login',

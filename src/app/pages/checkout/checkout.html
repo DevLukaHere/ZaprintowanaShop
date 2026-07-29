@@ -17,6 +17,7 @@
         <a class="btn btn--outline" routerLink="/">Wróć do sklepu</a>
       </div>
     } @else if (lines().length === 0) {
+
       <div class="checkout__empty">
         <p>Twój koszyk jest pusty.</p>
         <a class="btn btn--outline" routerLink="/">Przejdź do produktów</a>
@@ -101,6 +102,13 @@
             </label>
           </div>
 
+          @if (needsGuestList()) {
+            <p class="checkout__guest-note">
+              Wybrałaś/eś personalizację gości na kopertach — listę gości prześlij nam e-mailem
+              po złożeniu zamówienia lub wklej ją w polu „Uwagi do zamówienia” poniżej.
+            </p>
+          }
+
           <label class="field">
             <span class="field__label">Uwagi do zamówienia</span>
             <textarea rows="3" formControlName="notes"></textarea>
@@ -119,27 +127,40 @@
           <h2 class="checkout__form-title">Twoje zamówienie</h2>
 
           <ul class="checkout__items">
-            @for (line of lines(); track line.id) {
+            @for (entry of lines(); track entry.line.key) {
               <li class="checkout__item">
-                @if (line.image) {
-                  <img [src]="line.image" [alt]="line.name" />
+                @if (entry.imageUrl) {
+                  <img [src]="entry.imageUrl" [alt]="entry.name" />
                 }
                 <div class="checkout__item-info">
-                  <span class="checkout__item-name">{{ line.name }}</span>
-                  <span class="checkout__item-price">{{ line.price | price }}</span>
+                  <span class="checkout__item-name">{{ entry.name }}</span>
+                  @if (entry.details.length) {
+                    <ul class="checkout__item-config">
+                      @for (detail of entry.details; track detail.label) {
+                        <li>{{ detail.label }}: {{ detail.value }}</li>
+                      }
+                    </ul>
+                  }
+                  <span class="checkout__item-price">{{ entry.totals.subtotal | price }}</span>
+                  @if (entry.totals.belowMinimumFee > 0) {
+                    <span class="checkout__item-fee">
+                      + {{ entry.totals.belowMinimumFee | price }} — dopłata za zamówienie poniżej
+                      {{ minQuantity }} szt.
+                    </span>
+                  }
                 </div>
                 <div class="checkout__qty">
                   <button
                     type="button"
-                    (click)="cart.setQuantity(line.id, line.qty - 1)"
+                    (click)="cart.setQuantity(entry.line.key, entry.line.quantity - 1)"
                     aria-label="Zmniejsz ilość"
                   >
                     −
                   </button>
-                  <span>{{ line.qty }}</span>
+                  <span>{{ entry.line.quantity }}</span>
                   <button
                     type="button"
-                    (click)="cart.setQuantity(line.id, line.qty + 1)"
+                    (click)="cart.setQuantity(entry.line.key, entry.line.quantity + 1)"
                     aria-label="Zwiększ ilość"
                   >
                     +
@@ -148,6 +169,39 @@
               </li>
             }
           </ul>
+
+          <dl class="checkout__totals">
+            <div>
+              <dt>Wartość produktów</dt>
+              <dd>{{ totals().subtotal | price }}</dd>
+            </div>
+            @if (totals().discountRate > 0) {
+              <div class="checkout__totals-discount">
+                <dt>Rabat {{ totals().discountRate * 100 }}%</dt>
+                <dd>−{{ totals().discountAmount | price }}</dd>
+              </div>
+            }
+            @if (totals().belowMinimumFee > 0) {
+              <div>
+                <dt>Dopłata poniżej {{ minQuantity }} szt.</dt>
+                <dd>{{ totals().belowMinimumFee | price }}</dd>
+              </div>
+            }
+            <div>
+              <dt>Dostawa</dt>
+              <dd>{{ totals().freeShipping ? 'Gratis' : 'wg cennika' }}</dd>
+            </div>
+            <div class="checkout__totals-sum">
+              <dt>Razem</dt>
+              <dd>{{ totals().total | price }}</dd>
+            </div>
+          </dl>
+
+          @if (!totals().freeShipping) {
+            <p class="checkout__note">
+              Do darmowej dostawy brakuje {{ totals().missingForFreeShipping | price }}.
+            </p>
+          }
 
           <p class="checkout__note">
             Ceny produktów są cenami wyjściowymi („od”). Ostateczną wycenę potwierdzimy e-mailem

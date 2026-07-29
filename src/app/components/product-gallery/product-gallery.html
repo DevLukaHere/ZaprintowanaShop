@@ -1,0 +1,27 @@
+<div class="product-gallery">
+  <div class="product-gallery__stage">
+    @if (activeImage(); as image) {
+      <img class="product-gallery__main" [src]="image" [alt]="alt()" />
+    } @else {
+      <div class="product-gallery__main product-gallery__main--placeholder"></div>
+    }
+  </div>
+
+  @if (images().length > 1) {
+    <div class="product-gallery__thumbs">
+      @for (image of images(); track image; let i = $index) {
+        <button
+          type="button"
+          class="product-gallery__thumb"
+          [class.product-gallery__thumb--active]="i === activeIndex()"
+          (click)="select(i)"
+          (mouseenter)="select(i)"
+          [attr.aria-label]="'Zdjęcie ' + (i + 1)"
+          [attr.aria-pressed]="i === activeIndex()"
+        >
+          <img [src]="image" alt="" />
+        </button>
+      }
+    </div>
+  }
+</div>

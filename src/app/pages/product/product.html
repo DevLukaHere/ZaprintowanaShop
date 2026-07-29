@@ -1,0 +1,285 @@
+<main class="page">
+  <app-navbar />
+
+  @if (productsService.error(); as loadError) {
+    <p class="product__state product__state--error" role="alert">
+      Nie udało się pobrać produktu: {{ loadError.message }}
+    </p>
+  } @else if (product(); as item) {
+    <section class="product">
+      <app-category-bar [category]="item.category" />
+
+      <div class="product__layout">
+        <app-product-gallery
+          class="product__gallery"
+          [images]="item.imageUrls"
+          [alt]="item.name"
+        />
+
+        <div class="product__config">
+          <header class="product__header">
+            @if (isSample()) {
+              <p class="product__eyebrow">Próbne zaproszenie</p>
+            }
+            <h1 class="product__title">{{ item.name }}</h1>
+          </header>
+
+          <div class="product__quick-actions">
+            @if (isSample()) {
+              <a class="btn btn--outline" [routerLink]="['/produkt', item.id]">
+                Wróć do pełnej personalizacji
+              </a>
+            } @else {
+              <a class="btn btn--outline" [routerLink]="['/produkt', item.id, 'probka']">
+                Zamów próbki
+              </a>
+            }
+            <a class="btn btn--outline" routerLink="/kategoria/dodruk">Dodruk</a>
+          </div>
+
+          <p class="product__short-description">{{ item.description }}</p>
+
+          @if (item.full_description) {
+            <button type="button" class="product__jump" (click)="scrollToDescription()">
+              Przejdź do pełnego opisu
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 5v14M5 12l7 7 7-7"></path>
+              </svg>
+            </button>
+          }
+
+          @if (isSample()) {
+            <div class="product__sample-note">
+              <p>
+                W zestawie próbnym pomijamy dane do personalizacji — imiona, daty i miejsca
+                uzupełniamy przykładowymi treściami. Wybierasz tylko papier, kopertę i rodzaj
+                nadruku.
+              </p>
+              <ul>
+                <li>do {{ samplePricing.smallMaxQty }} szt. — {{ samplePricing.smallPrice | price }}</li>
+                <li>
+                  {{ samplePricing.smallMaxQty + 1 }}–{{ samplePricing.mediumMaxQty }} szt. —
+                  {{ samplePricing.mediumPrice | price }}
+                </li>
+                <li>
+                  powyżej {{ samplePricing.mediumMaxQty }} szt. —
+                  {{ samplePricing.mediumPrice | price }} + {{ samplePricing.extraPiecePrice | price }}
+                  za każdą kolejną sztukę
+                </li>
+              </ul>
+            </div>
+          }
+
+          <div class="product__options">
+            @if (paperOptions().length) {
+              <app-option-picker
+                label="Papier"
+                [options]="paperOptions()"
+                [(selectedId)]="paperId"
+              />
+            }
+
+            @if (foilOptions().length) {
+              <app-option-picker label="Folia" [options]="foilOptions()" [(selectedId)]="foilId" />
+            }
+
+            @if (printOptions().length) {
+              <div class="product__guest">
+                <span class="product__option-label">Personalizacja gości na kopertach</span>
+                <div class="product__toggle">
+                  <button
+                    type="button"
+                    class="product__toggle-btn"
+                    [class.product__toggle-btn--active]="guestPersonalisation()"
+                    (click)="guestPersonalisation.set(true)"
+                    [attr.aria-pressed]="guestPersonalisation()"
+                  >
+                    Tak
+                  </button>
+                  <button
+                    type="button"
+                    class="product__toggle-btn"
+                    [class.product__toggle-btn--active]="!guestPersonalisation()"
+                    (click)="guestPersonalisation.set(false)"
+                    [attr.aria-pressed]="!guestPersonalisation()"
+                  >
+                    Nie
+                  </button>
+                </div>
+
+                @if (guestPersonalisation()) {
+                  <app-envelope-print-picker
+                    [options]="printOptions()"
+                    [(selectedId)]="envelopePrintId"
+                  />
+
+                  @if (selectedPrint(); as print) {
+                    <p class="product__print-description">{{ print.description }}</p>
+                  }
+
+                  @if (showEnvelopeText()) {
+                    <label class="product__field">
+                      <span class="product__field-label">Tekst na klapie koperty</span>
+                      <input
+                        type="text"
+                        [attr.maxlength]="envelopeTextMaxLength"
+                        placeholder="np. pobieramy się Anna i Piotr"
+                        [value]="envelopeText()"
+                        (input)="envelopeText.set($any($event.target).value)"
+                      />
+                      <span class="product__hint">
+                        {{ envelopeText().length }}/{{ envelopeTextMaxLength }} znaków
+                      </span>
+                    </label>
+                  }
+
+                  @if (showGuestListNote()) {
+                    <p class="product__info-note">
+                      Listę gości (imiona i nazwiska do nadruku na kopertach) prześlesz nam
+                      w formularzu zamówienia lub e-mailem po jego złożeniu.
+                    </p>
+                  }
+                }
+              </div>
+            }
+
+            @if (envelopeOptions().length) {
+              <app-option-picker
+                label="Kolor koperty"
+                [options]="envelopeOptions()"
+                [(selectedId)]="envelopeId"
+              />
+            }
+
+            @if (showPersonalisation()) {
+              <div class="product__personalisation">
+                <span class="product__option-label">Personalizacja zaproszenia</span>
+                @for (field of personalisationFields; track field.key) {
+                  <label class="product__field">
+                    <span class="product__field-label">{{ field.label }}</span>
+                    @if (field.multiline) {
+                      <textarea
+                        rows="3"
+                        [attr.maxlength]="field.maxLength"
+                        [value]="personalisation()[field.key] || ''"
+                        (input)="setPersonalisation(field.key, $any($event.target).value)"
+                      ></textarea>
+                    } @else {
+                      <input
+                        type="text"
+                        [attr.maxlength]="field.maxLength"
+                        [value]="personalisation()[field.key] || ''"
+                        (input)="setPersonalisation(field.key, $any($event.target).value)"
+                      />
+                    }
+                  </label>
+                }
+              </div>
+            }
+          </div>
+
+          <label class="product__express">
+            <input
+              type="checkbox"
+              [checked]="express()"
+              (change)="express.set($any($event.target).checked)"
+            />
+            <span class="product__express-body">
+              <strong>Realizacja express</strong>
+              <span class="product__express-note">
+                Priorytetowa realizacja zamówienia — dopłata {{ expressPercent }}% do ceny.
+              </span>
+            </span>
+          </label>
+
+          <div class="product__price-box">
+            <span class="product__price-label">Cena za sztukę</span>
+            <span class="product__price">{{ displayUnitPrice() | price }}</span>
+            @if (quantity() > 1) {
+              <span class="product__price-total">
+                Razem za {{ quantity() }} szt.: <strong>{{ totals().total | price }}</strong>
+              </span>
+            }
+          </div>
+
+          <div class="product__buy">
+            <div class="product__qty">
+              <button type="button" (click)="setQuantity(quantity() - 1)" aria-label="Zmniejsz ilość">
+                −
+              </button>
+              <input
+                type="number"
+                min="1"
+                [value]="quantity()"
+                (change)="setQuantity(+$any($event.target).value)"
+                aria-label="Ilość sztuk"
+              />
+              <button type="button" (click)="setQuantity(quantity() + 1)" aria-label="Zwiększ ilość">
+                +
+              </button>
+            </div>
+
+            <button
+              type="button"
+              class="btn btn--primary product__add"
+              [disabled]="!canAddToCart()"
+              (click)="addToCart()"
+            >
+              Dodaj do koszyka
+            </button>
+          </div>
+
+          @if (missingSelections().length) {
+            <p class="product__hint product__hint--warning">
+              Wybierz jeszcze: {{ missingSelections().join(', ') }}.
+            </p>
+          }
+
+          @if (!isSample() && quantity() < minQuantity) {
+            <p class="product__surcharge">
+              Minimalna ilość sztuk to {{ minQuantity }}. Przy zamówieniu poniżej
+              {{ minQuantity }} szt. doliczamy dodatkową opłatę {{ belowMinimumFee | price }}.
+            </p>
+          }
+
+          <div class="product__benefits">
+            <ul>
+              @for (tier of discountTiers; track tier.threshold) {
+                <li>Rabat {{ tier.rate * 100 }}% przy zamówieniu od {{ tier.threshold | price }}</li>
+              }
+              <li>Darmowa dostawa od {{ freeShippingThreshold | price }}</li>
+              <li>Personalizacja zaproszeń gratis</li>
+              @if (!isSample()) {
+                <li>Minimalna ilość sztuk: {{ minQuantity }}</li>
+              }
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      @if (item.full_description) {
+        <section class="product__description" id="opis" #fullDescription>
+          <h2 class="section-title">Opis produktu</h2>
+          <p>{{ item.full_description }}</p>
+        </section>
+      }
+
+      @if (related().length) {
+        <section class="product__related" id="dopasowane-produkty">
+          <h2 class="section-title">Może spodoba się również…</h2>
+          <div class="product__related-grid">
+            @for (entry of related(); track entry.id) {
+              <app-product-card [product]="entry" />
+            }
+          </div>
+        </section>
+      }
+    </section>
+  } @else if (productsService.isLoading()) {
+    <p class="product__state">Ładowanie produktu…</p>
+  } @else {
+    <p class="product__state">Nie znaleźliśmy takiego produktu.</p>
+  }
+
+  <app-footer />
+</main>

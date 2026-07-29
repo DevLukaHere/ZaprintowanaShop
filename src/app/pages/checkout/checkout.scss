@@ -158,6 +158,79 @@
   }
 }
 
+.checkout {
+  &__guest-note {
+    font-size: 0.85rem;
+    line-height: 1.5;
+    color: var(--color-text);
+    background: var(--color-blush-soft);
+    border-left: 3px solid var(--color-blush-deep);
+    border-radius: 2px;
+    padding: 0.85rem 1rem;
+  }
+
+  &__item-config {
+    list-style: none;
+    margin: 0.3rem 0;
+    padding: 0;
+    font-size: 0.75rem;
+    line-height: 1.45;
+    color: var(--color-text-muted);
+  }
+
+  &__item-fee {
+    font-size: 0.75rem;
+    color: var(--color-wine);
+  }
+
+  &__totals {
+    margin: 1.5rem 0 0;
+    padding-top: 1rem;
+    border-top: 1px solid var(--color-border);
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    font-size: 0.88rem;
+
+    div {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    dt,
+    dd {
+      margin: 0;
+    }
+
+    dt {
+      color: var(--color-text-muted);
+    }
+  }
+
+  &__totals-discount dd {
+    color: var(--color-sage-deep);
+  }
+
+  &__totals-sum {
+    margin-top: 0.4rem;
+    padding-top: 0.7rem;
+    border-top: 1px solid var(--color-border);
+
+    dt {
+      color: var(--color-text);
+      font-weight: 600;
+    }
+
+    dd {
+      font-size: 1.25rem;
+      color: var(--color-blush-deep);
+      font-weight: 600;
+    }
+  }
+}
+
 .field {
   display: flex;
   flex-direction: column;

@@ -1,3 +1,5 @@
+import { ProductConfiguration } from './product-options';
+
 export type OrderStatus = 'new' | 'in_progress' | 'done' | 'cancelled';
 
 export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
@@ -20,6 +22,7 @@ export interface OrderItem {
   product_name: string;
   product_price: number;
   quantity: number;
+  configuration: ProductConfiguration | null;
 }
 
 export interface Order {

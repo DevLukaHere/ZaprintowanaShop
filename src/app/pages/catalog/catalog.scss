@@ -1,0 +1,116 @@
+:host {
+  display: block;
+}
+
+.page {
+  display: flex;
+  flex-direction: column;
+}
+
+.catalog {
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 1.5rem 2rem 4rem;
+  width: 100%;
+
+  &__title {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: 2.2rem;
+    color: var(--color-blush-deep);
+    margin: 2rem 0 1.5rem;
+    text-align: center;
+  }
+
+  &__filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem 1.4rem;
+    margin-bottom: 2.5rem;
+  }
+
+  &__filter-group {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+  }
+
+  &__filter-label {
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--color-blush-deep);
+    margin-right: 0.3rem;
+  }
+
+  &__chip {
+    border: 1px solid var(--color-border);
+    background: transparent;
+    border-radius: 999px;
+    padding: 0.42rem 0.95rem;
+    font-size: 0.78rem;
+    color: var(--color-text);
+    transition:
+      background-color 0.2s ease,
+      border-color 0.2s ease,
+      color 0.2s ease;
+
+    &:hover {
+      border-color: var(--color-blush-border);
+      color: var(--color-blush-deep);
+    }
+
+    &--active {
+      background: var(--color-blush-deep);
+      border-color: var(--color-blush-deep);
+      color: #fff;
+    }
+  }
+
+  &__clear {
+    border: none;
+    background: none;
+    font-size: 0.78rem;
+    color: var(--color-text-muted);
+    text-decoration: underline;
+
+    &:hover {
+      color: var(--color-wine);
+    }
+  }
+
+  &__placeholder,
+  &__error {
+    color: var(--color-text-muted);
+    text-align: center;
+    padding: 3rem 1rem;
+  }
+
+  &__error {
+    color: var(--color-wine);
+  }
+
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+    gap: 2.5rem 1.85rem;
+  }
+
+  @media (max-width: 700px) {
+    padding: 1rem 1rem 3rem;
+
+    &__title {
+      font-size: 1.8rem;
+      margin: 1.5rem 0 1.25rem;
+    }
+
+    &__grid {
+      grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
+      gap: 1.75rem 1rem;
+    }
+  }
+}

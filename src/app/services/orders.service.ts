@@ -1,15 +1,24 @@
 import { Injectable, resource } from '@angular/core';
+import { OrderMode } from '../core/pricing';
 import { supabase } from '../core/supabase-client';
 import { CheckoutDetails, Order, OrderStatus, PaymentStatus } from '../models/order';
+import { ProductConfiguration } from '../models/product-options';
+
+export interface OrderLineInput {
+  productId: string;
+  quantity: number;
+  unitPrice: number;
+  mode: OrderMode;
+  configuration: ProductConfiguration;
+}
 
 @Injectable({ providedIn: 'root' })
 export class OrdersService {
-  /** Admin-only: RLS returns rows just for users listed in public.admins. */
   private readonly ordersResource = resource({
     loader: async () => {
       const { data, error } = await supabase
         .from('orders')
-        .select('*, order_items(id, product_id, product_name, product_price, quantity)')
+        .select('*, order_items(*)')
         .order('created_at', { ascending: false });
       if (error) {
         throw error;
@@ -26,14 +35,7 @@ export class OrdersService {
     this.ordersResource.reload();
   }
 
-  /**
-   * Places an order through the create_order function. Item names and prices
-   * are resolved server-side, so only ids and quantities are sent.
-   */
-  async createOrder(
-    details: CheckoutDetails,
-    items: readonly { id: string; qty: number }[],
-  ): Promise<string> {
+  async createOrder(details: CheckoutDetails, items: readonly OrderLineInput[]): Promise<string> {
     const { data, error } = await supabase.rpc('create_order', {
       p_customer_name: details.customerName,
       p_customer_email: details.customerEmail,
@@ -42,7 +44,13 @@ export class OrdersService {
       p_shipping_city: details.shippingCity,
       p_shipping_postcode: details.shippingPostcode,
       p_notes: details.notes,
-      p_items: items.map((item) => ({ product_id: item.id, quantity: item.qty })),
+      p_items: items.map((item) => ({
+        product_id: item.productId,
+        quantity: item.quantity,
+        unit_price: item.unitPrice,
+        mode: item.mode,
+        configuration: item.configuration,
+      })),
     });
 
     if (error) {

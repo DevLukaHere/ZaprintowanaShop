@@ -1,0 +1,73 @@
+<main class="page">
+  <app-navbar />
+
+  <section class="catalog">
+    <app-category-bar [category]="category()" />
+
+    <h1 class="catalog__title">{{ heading() }}</h1>
+
+    @if (showFilters()) {
+      <div class="catalog__filters">
+        <div class="catalog__filter-group">
+          <span class="catalog__filter-label">Styl</span>
+          @for (style of allStyles; track style.slug) {
+            <button
+              type="button"
+              class="catalog__chip"
+              [class.catalog__chip--active]="isStyleSelected(style.slug)"
+              [attr.aria-pressed]="isStyleSelected(style.slug)"
+              (click)="toggleFilter('styles', style.slug)"
+            >
+              {{ style.label }}
+            </button>
+          }
+        </div>
+
+        <div class="catalog__filter-group">
+          <span class="catalog__filter-label">Rodzaj</span>
+          @for (type of allTypes; track type.slug) {
+            <button
+              type="button"
+              class="catalog__chip"
+              [class.catalog__chip--active]="isTypeSelected(type.slug)"
+              [attr.aria-pressed]="isTypeSelected(type.slug)"
+              (click)="toggleFilter('types', type.slug)"
+            >
+              {{ type.label }}
+            </button>
+          }
+        </div>
+
+        @if (hasFilters()) {
+          <button type="button" class="catalog__clear" (click)="clearFilters()">
+            Wyczyść filtry
+          </button>
+        }
+      </div>
+    }
+
+    @if (productsService.error(); as loadError) {
+      <p class="catalog__error" role="alert">
+        Nie udało się pobrać produktów: {{ loadError.message }}
+      </p>
+    } @else if (productsService.isLoading() && !productsService.products()) {
+      <p class="catalog__placeholder">Ładowanie produktów…</p>
+    } @else if (products().length === 0) {
+      <p class="catalog__placeholder">
+        @if (hasFilters()) {
+          Brak produktów spełniających wybrane filtry.
+        } @else {
+          Nie ma jeszcze żadnych produktów w tej kategorii.
+        }
+      </p>
+    } @else {
+      <div class="catalog__grid">
+        @for (product of products(); track product.id) {
+          <app-product-card [product]="product" />
+        }
+      </div>
+    }
+  </section>
+
+  <app-footer />
+</main>

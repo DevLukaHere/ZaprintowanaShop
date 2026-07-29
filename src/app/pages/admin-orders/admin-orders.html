@@ -170,6 +170,13 @@
                         <span class="admin__item-qty">{{ item.quantity }}×</span>
                         {{ item.product_name }}
                         <span class="admin__muted">{{ formatPrice(item.product_price) }}</span>
+                        @if (itemConfiguration(item); as details) {
+                          <ul class="admin__item-config">
+                            @for (detail of details; track detail.label) {
+                              <li>{{ detail.label }}: {{ detail.value }}</li>
+                            }
+                          </ul>
+                        }
                       </li>
                     }
                   </ul>

@@ -7,17 +7,16 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
-import { CartService } from '../../services/cart.service';
 import { ProductsService } from '../../services/products.service';
+import { ProductCard } from '../product-card/product-card';
 
 @Component({
   selector: 'app-product-carousel',
-  imports: [],
+  imports: [ProductCard],
   templateUrl: './product-carousel.html',
   styleUrl: './product-carousel.scss',
 })
 export class ProductCarousel implements AfterViewInit {
-  protected readonly cart = inject(CartService);
   protected readonly productsService = inject(ProductsService);
 
   private readonly carouselSpeedPxPerSecond = 24;
@@ -68,12 +67,6 @@ export class ProductCarousel implements AfterViewInit {
     );
   }
 
-  /**
-   * Drag only actually engages once the pointer has moved past a threshold —
-   * until then this is indistinguishable from a plain click, so we leave the
-   * track's transform/animation and pointer capture untouched so clicks on
-   * "Do koszyka" / wishlist buttons keep working normally.
-   */
   protected onPointerDown(event: PointerEvent): void {
     this.pointerDown = true;
     this.dragPointerId = event.pointerId;
@@ -146,8 +139,7 @@ export class ProductCarousel implements AfterViewInit {
   }
 
   private resumeAnimationFrom(track: HTMLElement, x: number): void {
-    track.style.setProperty('--carousel-start', `${x}px`);
-    track.style.setProperty('--carousel-end', `${x + this.copyWidthPx}px`);
+    track.style.setProperty('--carousel-offset', `${x}px`);
     track.style.transform = `translateX(${x}px)`;
     track.classList.remove('carousel__track--animated');
     void track.offsetWidth;
@@ -157,24 +149,23 @@ export class ProductCarousel implements AfterViewInit {
   private setupCarouselAnimation(): void {
     const track = this.carouselTrack()?.nativeElement;
     const viewport = this.carouselViewport()?.nativeElement;
-    if (!track || !viewport || track.children.length === 0) {
+    const itemCount = track?.children.length ?? 0;
+    if (!track || !viewport || itemCount < 2 || itemCount % 2 !== 0) {
       return;
     }
 
-    const copyWidthPx = track.scrollWidth / 2;
-    const firstItem = track.children[0] as HTMLElement | undefined;
-    const itemWidth = firstItem?.getBoundingClientRect().width ?? 0;
+    const firstItem = track.children[0] as HTMLElement;
+    const secondCopyStart = track.children[itemCount / 2] as HTMLElement;
+    this.copyWidthPx = secondCopyStart.offsetLeft - firstItem.offsetLeft;
 
-    const startX = viewport.clientWidth - itemWidth - copyWidthPx;
-    const endX = startX + copyWidthPx;
-    const durationSeconds = copyWidthPx / this.carouselSpeedPxPerSecond;
+    // Ruch w prawo: start przesunięty o jedną kopię w lewo, animacja wraca do 0,
+    // dzięki czemu druga kopia bezszwowo zastępuje pierwszą.
+    const offsetX = -this.copyWidthPx;
+    const durationSeconds = this.copyWidthPx / this.carouselSpeedPxPerSecond;
 
-    this.copyWidthPx = copyWidthPx;
-
-    track.style.setProperty('--carousel-start', `${startX}px`);
-    track.style.setProperty('--carousel-end', `${endX}px`);
+    track.style.setProperty('--carousel-offset', `${offsetX}px`);
     track.style.setProperty('--carousel-duration', `${durationSeconds}s`);
-    track.style.transform = `translateX(${startX}px)`;
+    track.style.transform = `translateX(${offsetX}px)`;
     track.classList.add('carousel__track--animated');
   }
 }

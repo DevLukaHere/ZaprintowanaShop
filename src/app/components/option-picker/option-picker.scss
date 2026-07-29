@@ -1,0 +1,73 @@
+:host {
+  display: block;
+}
+
+.option-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+
+  &__header {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+  }
+
+  &__label {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+  }
+
+  &__selected {
+    font-size: 0.85rem;
+    color: var(--color-text);
+  }
+
+  &__price {
+    color: var(--color-blush-deep);
+    font-weight: 600;
+    margin-left: 0.25rem;
+  }
+
+  &__swatches {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+  }
+
+  &__swatch {
+    width: 2.3rem;
+    height: 2.3rem;
+    padding: 0.18rem;
+    border-radius: 50%;
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+    overflow: hidden;
+    transition:
+      border-color 0.2s ease,
+      box-shadow 0.2s ease;
+
+    img,
+    .option-picker__fill {
+      display: block;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+      box-shadow: inset 0 0 0 1px rgba(43, 36, 32, 0.08);
+    }
+
+    &:hover {
+      border-color: var(--color-blush-border);
+    }
+
+    &--active {
+      border-color: var(--color-blush-deep);
+      box-shadow: 0 0 0 2px rgba(var(--color-blush-deep-rgb), 0.25);
+    }
+  }
+}

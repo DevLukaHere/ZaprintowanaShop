@@ -1,0 +1,50 @@
+:host {
+  display: block;
+}
+
+.category-bar {
+  display: flex;
+  align-items: center;
+  gap: 1.6rem;
+  overflow-x: auto;
+  padding: 0.4rem 0 0.9rem;
+  border-bottom: 1px solid var(--color-border);
+  scrollbar-width: thin;
+
+  &__link {
+    position: relative;
+    flex-shrink: 0;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+    text-decoration: none;
+    padding-bottom: 0.5rem;
+    white-space: nowrap;
+
+    &::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: -1px;
+      height: 2px;
+      background: var(--color-blush-deep);
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+
+    &:hover {
+      color: var(--color-blush-deep);
+    }
+
+    &--active {
+      color: var(--color-blush-deep);
+
+      &::after {
+        opacity: 1;
+      }
+    }
+  }
+}

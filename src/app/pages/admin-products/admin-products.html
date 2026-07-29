@@ -36,9 +36,10 @@
             }
 
             <div class="product-card__body">
+              <span class="product-card__category">{{ categoryLabelOf(product) }}</span>
               <h2 class="product-card__name">{{ product.name }}</h2>
               <p class="product-card__description">{{ product.description }}</p>
-              <span class="product-card__price">{{ product.price | price }}</span>
+              <span class="product-card__price">{{ product.price | price: true }}</span>
             </div>
 
             <div class="product-card__actions">
@@ -65,29 +66,63 @@
         </h2>
 
         <div class="admin-modal__layout">
-          <label
-            class="admin-modal__media"
-            [class.admin-modal__media--dragging]="draggingFile()"
-            (dragover)="onFileDragOver($event)"
-            (dragleave)="onFileDragLeave()"
-            (drop)="onFileDrop($event)"
-          >
-            @if (previewUrl(); as preview) {
-              <img class="admin-modal__preview" [src]="preview" alt="Podgląd zdjęcia" />
-            } @else {
-              <span class="admin-modal__preview admin-modal__preview--empty">Dodaj lub upuść zdjęcie</span>
-            }
-            <span class="admin-modal__media-hint">
-              {{ previewUrl() ? 'Kliknij lub upuść, aby zmienić zdjęcie' : 'Kliknij lub upuść plik tutaj' }}
-            </span>
-            <input
-              #fileInput
-              class="admin-modal__file-input"
-              type="file"
-              accept="image/*"
-              (change)="onFileSelected($event)"
-            />
-          </label>
+          <div class="admin-modal__media-column">
+            <label
+              class="admin-modal__media"
+              [class.admin-modal__media--dragging]="draggingFile()"
+              (dragover)="onFileDragOver($event)"
+              (dragleave)="onFileDragLeave()"
+              (drop)="onFileDrop($event)"
+            >
+              @if (mainPreviewUrl(); as preview) {
+                <img class="admin-modal__preview" [src]="preview" alt="Podgląd zdjęcia" />
+              } @else {
+                <span class="admin-modal__preview admin-modal__preview--empty">
+                  Dodaj lub upuść zdjęcie główne
+                </span>
+              }
+              <span class="admin-modal__media-hint">
+                {{ mainPreviewUrl() ? 'Kliknij lub upuść, aby zmienić zdjęcie' : 'Kliknij lub upuść plik tutaj' }}
+              </span>
+              <input
+                class="admin-modal__file-input"
+                type="file"
+                accept="image/*"
+                (change)="onMainFileSelected($event)"
+              />
+            </label>
+
+            <div class="admin-modal__gallery">
+              <span class="field__label">
+                Galeria (drugie zdjęcie pokazuje się po najechaniu na kafelek)
+              </span>
+              <div class="admin-modal__gallery-grid">
+                @for (entry of gallery(); track entry.previewUrl; let i = $index) {
+                  <div class="admin-modal__gallery-item">
+                    <img [src]="entry.previewUrl" alt="" />
+                    <button
+                      type="button"
+                      class="admin-modal__gallery-remove"
+                      (click)="removeGalleryEntry(i)"
+                      aria-label="Usuń zdjęcie"
+                    >
+                      ×
+                    </button>
+                  </div>
+                }
+                <label class="admin-modal__gallery-add">
+                  +
+                  <input
+                    class="admin-modal__file-input"
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    (change)="onGalleryFilesSelected($event)"
+                  />
+                </label>
+              </div>
+            </div>
+          </div>
 
           <div class="admin-modal__fields">
             <label class="field">
@@ -103,16 +138,174 @@
 
               <label class="field">
                 <span class="field__label">Odznaka</span>
-                <input type="text" formControlName="badge" placeholder="opcjonalnie" />
+                <input type="text" formControlName="badge" placeholder="np. Nowość" />
               </label>
             </div>
 
+            <div class="field-row">
+              <label class="field">
+                <span class="field__label">Kategoria</span>
+                <select formControlName="category">
+                  @for (category of mainCategories; track category.slug) {
+                    <option [value]="category.slug">{{ category.label }}</option>
+                  }
+                </select>
+              </label>
+
+              <label class="field">
+                <span class="field__label">Podkategoria</span>
+                <select formControlName="subcategory" [disabled]="subcategories().length === 0">
+                  <option value="">—</option>
+                  @for (sub of subcategories(); track sub.slug) {
+                    <option [value]="sub.slug">{{ sub.label }}</option>
+                  }
+                </select>
+              </label>
+            </div>
+
+            <div class="admin-modal__flags">
+              <label class="checkbox">
+                <input type="checkbox" formControlName="is_new" />
+                <span>Nowość</span>
+              </label>
+              <label class="checkbox">
+                <input type="checkbox" formControlName="is_bestseller" />
+                <span>Bestseller</span>
+              </label>
+            </div>
+
+            <label class="field">
+              <span class="field__label">Krótki opis (nad przyciskiem „pełny opis”)</span>
+              <textarea formControlName="description" rows="2"></textarea>
+            </label>
+
             <label class="field field--grow">
-              <span class="field__label">Opis</span>
-              <textarea formControlName="description"></textarea>
+              <span class="field__label">Pełny opis</span>
+              <textarea formControlName="full_description" rows="5"></textarea>
             </label>
           </div>
         </div>
+
+        @if (showClassification()) {
+          <fieldset class="admin-modal__section">
+            <legend>Styl</legend>
+            <div class="admin-modal__chips">
+              @for (style of allStyles; track style.slug) {
+                <button
+                  type="button"
+                  class="chip"
+                  [class.chip--active]="selectedStyles().includes(style.slug)"
+                  (click)="toggleStyle(style.slug)"
+                >
+                  {{ style.label }}
+                </button>
+              }
+            </div>
+
+            <legend>Rodzaj</legend>
+            <div class="admin-modal__chips">
+              @for (type of allTypes; track type.slug) {
+                <button
+                  type="button"
+                  class="chip"
+                  [class.chip--active]="selectedTypes().includes(type.slug)"
+                  (click)="toggleType(type.slug)"
+                >
+                  {{ type.label }}
+                </button>
+              }
+            </div>
+          </fieldset>
+        }
+
+        <fieldset class="admin-modal__section">
+          <legend>Opcje do wyboru przez klienta</legend>
+          <p class="admin-modal__hint">
+            Zaznacz tylko te warianty, które dotyczą tego produktu — niezaznaczone grupy nie
+            pojawią się na stronie produktu.
+          </p>
+
+          @for (group of optionGroups; track group) {
+            <div class="option-editor">
+              <span class="field__label">{{ optionGroupLabels[group] }}</span>
+              @for (draft of optionDrafts()[group]; track draft.id) {
+                <div class="option-editor__row">
+                  <label class="checkbox">
+                    <input
+                      type="checkbox"
+                      [checked]="draft.enabled"
+                      (change)="toggleOption(group, draft.id)"
+                    />
+                    @if (draft.swatch) {
+                      <span class="option-editor__swatch" [style.background]="draft.swatch"></span>
+                    }
+                    <span>{{ draft.label }}</span>
+                  </label>
+                  <label class="option-editor__price">
+                    <span>dopłata</span>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      [value]="draft.price"
+                      [disabled]="!draft.enabled"
+                      (input)="setOptionPrice(group, draft.id, +$any($event.target).value)"
+                    />
+                    <span>zł</span>
+                  </label>
+                </div>
+              }
+            </div>
+          }
+        </fieldset>
+
+        <fieldset class="admin-modal__section">
+          <legend>Nadruk na kopertach</legend>
+          <label class="checkbox">
+            <input
+              type="checkbox"
+              [checked]="printEnabled()"
+              (change)="printEnabled.set($any($event.target).checked)"
+            />
+            <span>Produkt oferuje personalizację gości na kopertach</span>
+          </label>
+
+          @if (printEnabled()) {
+            <div class="print-editor">
+              @for (draft of printDrafts(); track draft.id) {
+                <div class="print-editor__row">
+                  <label class="print-editor__media">
+                    @if (draft.previewUrl) {
+                      <img [src]="draft.previewUrl" [alt]="draft.label" />
+                    } @else {
+                      <span>Dodaj zdjęcie</span>
+                    }
+                    <input
+                      class="admin-modal__file-input"
+                      type="file"
+                      accept="image/*"
+                      (change)="onPrintFileSelected($event, draft.id)"
+                    />
+                  </label>
+                  <div class="print-editor__info">
+                    <span class="print-editor__label">{{ draft.label }}</span>
+                    <label class="option-editor__price">
+                      <span>dopłata</span>
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        [value]="draft.price"
+                        (input)="setPrintPrice(draft.id, +$any($event.target).value)"
+                      />
+                      <span>zł / szt.</span>
+                    </label>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </fieldset>
 
         @if (formError(); as message) {
           <p class="admin__error" role="alert">{{ message }}</p>
