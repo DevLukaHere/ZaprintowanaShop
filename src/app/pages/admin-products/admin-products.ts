@@ -1,13 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AdminHeader } from '../../components/admin-header/admin-header';
-import {
-  MAIN_CATEGORIES,
-  MainCategory,
-  PRODUCT_STYLES,
-  PRODUCT_TYPES,
-  findMainCategory,
-} from '../../models/category';
+import { MainCategory, slugify } from '../../models/category';
 import { Collection, ProductInput } from '../../models/collection';
 import {
   ENVELOPE_PRINT_OPTIONS,
@@ -19,6 +13,12 @@ import {
 } from '../../models/product-options';
 import { PricePipe } from '../../pipes/price.pipe';
 import { AdminProductsService } from '../../services/admin-products.service';
+import {
+  TAXONOMY_KIND_LABELS,
+  TaxonomyEntry,
+  TaxonomyKind,
+  TaxonomyService,
+} from '../../services/taxonomy.service';
 
 interface OptionDraft {
   id: string;
@@ -38,6 +38,20 @@ interface PrintDraft {
 }
 
 const OPTION_GROUPS: OptionGroup[] = ['paper', 'foil', 'envelope'];
+
+/** Bez ogonków i wielkości liter — żeby „zloc” trafiało w „złocone”. */
+function normalise(value: string): string {
+  return value
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/\u0142/g, 'l');
+}
+
+function searchableText(product: Collection): string {
+  return normalise([product.name, product.description, product.full_description ?? ''].join(' '));
+}
 
 function draftsFrom(group: OptionGroup, saved: ProductOption[] | undefined): OptionDraft[] {
   const presets = OPTION_PRESETS[group];
@@ -75,11 +89,16 @@ export class AdminProductsPage {
 
   protected readonly productsService = inject(AdminProductsService);
 
-  protected readonly mainCategories = MAIN_CATEGORIES;
-  protected readonly allStyles = PRODUCT_STYLES;
-  protected readonly allTypes = PRODUCT_TYPES;
+  protected readonly taxonomy = inject(TaxonomyService);
+
+  protected readonly mainCategories = this.taxonomy.mainCategories;
+  protected readonly allStyles = this.taxonomy.styles;
+  protected readonly allTypes = this.taxonomy.types;
   protected readonly optionGroups = OPTION_GROUPS;
   protected readonly optionGroupLabels = OPTION_GROUP_LABELS;
+
+  protected readonly searchTerm = signal('');
+  protected readonly categoryFilter = signal<MainCategory | 'all'>('all');
 
   protected readonly showForm = signal(false);
   protected readonly editingId = signal<string | null>(null);
@@ -112,23 +131,42 @@ export class AdminProductsPage {
     full_description: [''],
     price: this.formBuilder.control<number>(0, [Validators.required, Validators.min(0)]),
     badge: [''],
-    category: this.formBuilder.control<MainCategory>('zaproszenia', Validators.required),
+    category: this.formBuilder.control<MainCategory>('invitations', Validators.required),
     subcategory: [''],
     is_new: [false],
     is_bestseller: [false],
+    is_promo: [false],
+    is_featured: [false],
   });
 
-  private readonly categoryValue = signal<MainCategory>('zaproszenia');
+  private readonly categoryValue = signal<MainCategory>('invitations');
 
   protected readonly subcategories = computed(
-    () => findMainCategory(this.categoryValue())?.subcategories ?? [],
+    () => this.taxonomy.findMainCategory(this.categoryValue())?.subcategories ?? [],
   );
 
   protected readonly showClassification = computed(
-    () => findMainCategory(this.categoryValue())?.filterable ?? false,
+    () => this.taxonomy.findMainCategory(this.categoryValue())?.filterable ?? false,
   );
 
   constructor() {
+    this.taxonomyForm.controls.kind.valueChanges.subscribe((kind) => {
+      this.taxonomyKind.set(kind);
+      if (kind !== 'subcategory') {
+        this.taxonomyForm.controls.parent_slug.setValue('', { emitEvent: false });
+      }
+    });
+    this.taxonomyForm.controls.label.valueChanges.subscribe((label) => {
+      if (!this.slugEditedByHand) {
+        this.taxonomyForm.controls.slug.setValue(slugify(label), { emitEvent: false });
+        this.taxonomySlug.set(slugify(label));
+      }
+    });
+    this.taxonomyForm.controls.slug.valueChanges.subscribe((slug) => {
+      this.slugEditedByHand = true;
+      this.taxonomySlug.set(slug);
+    });
+
     this.form.controls.category.valueChanges.subscribe((value) => {
       this.categoryValue.set(value);
       if (!this.subcategories().some((sub) => sub.slug === this.form.controls.subcategory.value)) {
@@ -137,8 +175,179 @@ export class AdminProductsPage {
     });
   }
 
+  /** Produkty po kategorii, bez wyszukiwarki — z tego liczymy liczniki przy chipach. */
+  private readonly productsInCategory = computed(() => {
+    const products = this.productsService.products() ?? [];
+    const category = this.categoryFilter();
+    return category === 'all'
+      ? products
+      : products.filter((product) => product.category === category);
+  });
+
+  protected readonly categoryOptions = computed(() => {
+    const products = this.productsService.products() ?? [];
+    return [
+      { slug: 'all' as const, label: 'Wszystkie', count: products.length },
+      ...this.mainCategories().map((category) => ({
+        slug: category.slug,
+        label: category.label,
+        count: products.filter((product) => product.category === category.slug).length,
+      })),
+    ];
+  });
+
+  protected readonly visibleProducts = computed(() => {
+    const query = normalise(this.searchTerm());
+    const products = this.productsInCategory();
+    if (!query) {
+      return products;
+    }
+    return products.filter((product) => searchableText(product).includes(query));
+  });
+
+  protected resetBrowse(): void {
+    this.searchTerm.set('');
+    this.categoryFilter.set('all');
+  }
+
+  // --- Słowniki: kategorie / podkategorie / style / rodzaje ---------------
+
+  protected readonly taxonomyKinds: TaxonomyKind[] = ['category', 'subcategory', 'style', 'type'];
+  protected readonly taxonomyKindLabels = TAXONOMY_KIND_LABELS;
+
+  protected readonly showTaxonomy = signal(false);
+  protected readonly taxonomySubmitting = signal(false);
+  protected readonly taxonomyError = signal<string | null>(null);
+
+  protected readonly taxonomyForm = this.formBuilder.group({
+    kind: this.formBuilder.control<TaxonomyKind>('subcategory', Validators.required),
+    label: ['', Validators.required],
+    slug: [''],
+    parent_slug: [''],
+  });
+
+  private readonly taxonomyKind = signal<TaxonomyKind>('subcategory');
+  private readonly taxonomySlug = signal('');
+  /** Dopóki admin nie tknie pola adresu, podpowiadamy je z nazwy. */
+  private slugEditedByHand = false;
+
+  protected readonly taxonomyNeedsParent = computed(() => this.taxonomyKind() === 'subcategory');
+  protected readonly taxonomySlugPreview = computed(() => slugify(this.taxonomySlug()));
+
+  protected readonly taxonomyGroups = computed(() =>
+    this.taxonomyKinds.map((kind) => ({
+      kind,
+      label: TAXONOMY_KIND_LABELS[kind],
+      entries: this.taxonomy.entries().filter((entry) => entry.kind === kind),
+    })),
+  );
+
+  protected toggleTaxonomy(): void {
+    this.showTaxonomy.update((open) => !open);
+    this.taxonomyError.set(null);
+  }
+
+  protected taxonomyParentLabel(entry: TaxonomyEntry): string {
+    return entry.parent_slug
+      ? (this.taxonomy.findMainCategory(entry.parent_slug)?.label ?? entry.parent_slug)
+      : '';
+  }
+
+  /** Ile produktów wisi na wpisie — nie pozwalamy usunąć używanego slugu. */
+  protected taxonomyUsage(entry: TaxonomyEntry): number {
+    const products = this.productsService.products() ?? [];
+    switch (entry.kind) {
+      case 'category':
+        return products.filter((product) => product.category === entry.slug).length;
+      case 'subcategory':
+        return products.filter((product) => product.subcategory === entry.slug).length;
+      case 'style':
+        return products.filter((product) => product.styles?.includes(entry.slug)).length;
+      case 'type':
+        return products.filter((product) => product.types?.includes(entry.slug)).length;
+    }
+  }
+
+  protected async addTaxonomy(): Promise<void> {
+    if (this.taxonomyForm.invalid) {
+      this.taxonomyForm.markAllAsTouched();
+      return;
+    }
+
+    const values = this.taxonomyForm.getRawValue();
+    const slug = slugify(values.slug || values.label);
+
+    if (!slug) {
+      this.taxonomyError.set('Adres musi zawierać litery lub cyfry.');
+      return;
+    }
+    if (/[^a-z0-9-]/.test(slug)) {
+      this.taxonomyError.set('Adres może zawierać tylko małe litery, cyfry i myślniki.');
+      return;
+    }
+    if (values.kind === 'subcategory' && !values.parent_slug) {
+      this.taxonomyError.set('Wybierz kategorię nadrzędną dla podkategorii.');
+      return;
+    }
+
+    this.taxonomySubmitting.set(true);
+    this.taxonomyError.set(null);
+
+    try {
+      await this.taxonomy.create({
+        kind: values.kind,
+        slug,
+        label: values.label.trim(),
+        parent_slug: values.kind === 'subcategory' ? values.parent_slug : null,
+      });
+      this.slugEditedByHand = false;
+      this.taxonomyForm.patchValue({ label: '', slug: '' }, { emitEvent: false });
+      this.taxonomySlug.set('');
+    } catch (error) {
+      this.taxonomyError.set(error instanceof Error ? error.message : 'Nie udało się dodać wpisu.');
+    } finally {
+      this.taxonomySubmitting.set(false);
+    }
+  }
+
+  protected async renameTaxonomy(entry: TaxonomyEntry): Promise<void> {
+    const label = prompt(`Nowa nazwa dla „${entry.label}”:`, entry.label)?.trim();
+    if (!label || label === entry.label) {
+      return;
+    }
+    this.taxonomyError.set(null);
+    try {
+      await this.taxonomy.rename(entry.id, label);
+    } catch (error) {
+      this.taxonomyError.set(
+        error instanceof Error ? error.message : 'Nie udało się zmienić nazwy.',
+      );
+    }
+  }
+
+  protected async removeTaxonomy(entry: TaxonomyEntry): Promise<void> {
+    const usage = this.taxonomyUsage(entry);
+    if (usage > 0) {
+      this.taxonomyError.set(
+        `Nie można usunąć „${entry.label}” — korzysta z tego wpisu ${usage} produkt(ów). Najpierw przepnij je gdzie indziej.`,
+      );
+      return;
+    }
+    if (!confirm(`Usunąć „${entry.label}”?`)) {
+      return;
+    }
+    this.taxonomyError.set(null);
+    try {
+      await this.taxonomy.remove(entry.id);
+    } catch (error) {
+      this.taxonomyError.set(
+        error instanceof Error ? error.message : 'Nie udało się usunąć wpisu.',
+      );
+    }
+  }
+
   protected categoryLabelOf(product: Collection): string {
-    return findMainCategory(product.category)?.label ?? '—';
+    return this.taxonomy.findMainCategory(product.category)?.label ?? '—';
   }
 
   protected openCreate(): void {
@@ -154,17 +363,19 @@ export class AdminProductsPage {
     });
     this.printEnabled.set(false);
     this.printDrafts.set(this.buildPrintDrafts(undefined));
-    this.categoryValue.set('zaproszenia');
+    this.categoryValue.set('invitations');
     this.form.reset({
       name: '',
       description: '',
       full_description: '',
       price: 0,
       badge: '',
-      category: 'zaproszenia',
+      category: 'invitations',
       subcategory: '',
       is_new: false,
       is_bestseller: false,
+      is_promo: false,
+      is_featured: false,
     });
     this.showForm.set(true);
   }
@@ -193,17 +404,19 @@ export class AdminProductsPage {
     this.printEnabled.set(!!product.envelope_print?.enabled);
     this.printDrafts.set(this.buildPrintDrafts(product));
 
-    this.categoryValue.set(product.category ?? 'zaproszenia');
+    this.categoryValue.set(product.category ?? 'invitations');
     this.form.reset({
       name: product.name,
       description: product.description,
       full_description: product.full_description ?? '',
       price: product.price,
       badge: product.badge ?? '',
-      category: product.category ?? 'zaproszenia',
+      category: product.category ?? 'invitations',
       subcategory: product.subcategory ?? '',
       is_new: !!product.is_new,
       is_bestseller: !!product.is_bestseller,
+      is_promo: !!product.is_promo,
+      is_featured: !!product.is_featured,
     });
     this.showForm.set(true);
   }
@@ -329,8 +542,8 @@ export class AdminProductsPage {
   }
 
   private optionsFor(group: OptionGroup): ProductOption[] | undefined {
-    const enabled = this.optionDrafts()[group]
-      .filter((draft) => draft.enabled)
+    const enabled = this.optionDrafts()
+      [group].filter((draft) => draft.enabled)
       .map(({ id, label, price, swatch }) => ({ id, label, price, swatch }));
     return enabled.length ? enabled : undefined;
   }
@@ -362,9 +575,7 @@ export class AdminProductsPage {
         for (const draft of this.printDrafts()) {
           overrides[draft.id] = {
             price: draft.price,
-            image: draft.file
-              ? await this.productsService.uploadImage(draft.file)
-              : draft.image,
+            image: draft.file ? await this.productsService.uploadImage(draft.file) : draft.image,
           };
         }
       }
@@ -384,6 +595,8 @@ export class AdminProductsPage {
         types: classified ? this.selectedTypes() : [],
         is_new: values.is_new,
         is_bestseller: values.is_bestseller,
+        is_promo: values.is_promo,
+        is_featured: values.is_featured,
         paper_options: this.optionsFor('paper'),
         foil_options: this.optionsFor('foil'),
         envelope_options: this.optionsFor('envelope'),

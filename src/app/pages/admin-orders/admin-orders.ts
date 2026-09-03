@@ -4,6 +4,7 @@ import { AdminHeader } from '../../components/admin-header/admin-header';
 import {
   ConfigurationDetail,
   describeConfiguration,
+  describePersonalisation,
 } from '../../core/configuration-summary';
 import {
   ORDER_STATUS_LABELS,
@@ -41,6 +42,8 @@ export class AdminOrdersPage {
   protected readonly paymentFilter = signal<PaymentStatus | 'all'>('all');
   protected readonly query = signal('');
   protected readonly statusError = signal<string | null>(null);
+  protected readonly emailNotice = signal<string | null>(null);
+  protected readonly copiedOrderId = signal<string | null>(null);
 
   protected readonly sortColumn = signal<SortColumn>('created_at');
   protected readonly sortDirection = signal<SortDirection>('desc');
@@ -136,6 +139,11 @@ export class AdminOrdersPage {
     return order.order_items.reduce((sum, item) => sum + item.quantity, 0);
   }
 
+  protected orderPersonalisation(order: Order): ConfigurationDetail[] | null {
+    const details = describePersonalisation(order.personalisation);
+    return details.length ? details : null;
+  }
+
   protected itemConfiguration(item: OrderItem): ConfigurationDetail[] | null {
     if (!item.configuration) {
       return null;
@@ -164,12 +172,59 @@ export class AdminOrdersPage {
   protected async togglePaymentStatus(order: Order): Promise<void> {
     const next: PaymentStatus = order.payment_status === 'paid' ? 'unpaid' : 'paid';
     this.statusError.set(null);
+    this.emailNotice.set(null);
     try {
-      await this.ordersService.updatePaymentStatus(order.id, next);
+      const email = await this.ordersService.updatePaymentStatus(order.id, next);
+      if (email && !email.sent) {
+        this.emailNotice.set(this.emailProblem(order, email.reason));
+      }
     } catch (error) {
       this.statusError.set(
         error instanceof Error ? error.message : 'Nie udało się zmienić statusu płatności.',
       );
     }
+  }
+
+  private emailProblem(order: Order, reason: string | undefined): string {
+    if (reason === 'already_sent') {
+      return `Mail z formularzem był już wysłany do ${order.customer_email} — nie wysyłamy go drugi raz.`;
+    }
+    if (reason === 'missing_mail_provider' || reason === 'missing_mail_config') {
+      return 'Płatność zapisana, ale poczta nie jest jeszcze skonfigurowana. Skopiuj link do formularza i wyślij go klientowi ręcznie.';
+    }
+    return `Płatność zapisana, ale maila nie udało się wysłać (${reason ?? 'nieznany błąd'}). Skopiuj link do formularza i wyślij go ręcznie.`;
+  }
+
+  /**
+   * Prywatny link do formularza — ten sam, który klient dostaje mailem.
+   * `document.baseURI` uwzględnia `<base href>`, więc link działa i lokalnie,
+   * i na GitHub Pages, gdzie aplikacja siedzi w podkatalogu /ZaprintowanaShop/.
+   */
+  protected detailsFormUrl(order: Order): string {
+    return new URL(`order/${order.personalisation_token}`, document.baseURI).href;
+  }
+
+  protected async copyDetailsFormUrl(order: Order): Promise<void> {
+    try {
+      await navigator.clipboard.writeText(this.detailsFormUrl(order));
+      this.copiedOrderId.set(order.id);
+      setTimeout(() => {
+        if (this.copiedOrderId() === order.id) {
+          this.copiedOrderId.set(null);
+        }
+      }, 2000);
+    } catch {
+      this.statusError.set('Przeglądarka nie pozwoliła skopiować linku — zaznacz go ręcznie.');
+    }
+  }
+
+  protected async resendDetailsEmail(order: Order): Promise<void> {
+    this.emailNotice.set(null);
+    const result = await this.ordersService.sendEmail(order.id, 'payment-received');
+    this.emailNotice.set(
+      result.sent
+        ? `Mail z formularzem wysłany do ${order.customer_email}.`
+        : this.emailProblem(order, result.reason),
+    );
   }
 }

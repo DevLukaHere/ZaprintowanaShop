@@ -1,13 +1,63 @@
 <div class="product-gallery">
-  <div class="product-gallery__stage">
+  <div
+    class="product-gallery__stage"
+    [attr.tabindex]="hasMultiple() ? 0 : null"
+    [attr.role]="hasMultiple() ? 'group' : null"
+    [attr.aria-label]="hasMultiple() ? 'Zdjęcia produktu — strzałki zmieniają zdjęcie' : null"
+    (keydown.arrowleft)="prev()"
+    (keydown.arrowright)="next()"
+    (pointerdown)="onPointerDown($event)"
+    (pointerup)="onPointerUp($event)"
+    (pointercancel)="onPointerCancel()"
+  >
     @if (activeImage(); as image) {
-      <img class="product-gallery__main" [src]="image" [alt]="alt()" />
+      <img class="product-gallery__main" [src]="image" [alt]="alt()" draggable="false" />
     } @else {
       <div class="product-gallery__main product-gallery__main--placeholder"></div>
     }
+
+    @if (hasMultiple()) {
+      <button
+        type="button"
+        class="product-gallery__arrow product-gallery__arrow--prev"
+        (click)="prev()"
+        aria-label="Poprzednie zdjęcie"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M15 5l-7 7 7 7"></path>
+        </svg>
+      </button>
+
+      <button
+        type="button"
+        class="product-gallery__arrow product-gallery__arrow--next"
+        (click)="next()"
+        aria-label="Następne zdjęcie"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M9 5l7 7-7 7"></path>
+        </svg>
+      </button>
+    }
   </div>
 
-  @if (images().length > 1) {
+  @if (hasMultiple()) {
     <div class="product-gallery__thumbs">
       @for (image of images(); track image; let i = $index) {
         <button

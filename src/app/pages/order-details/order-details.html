@@ -1,0 +1,131 @@
+<main class="page">
+  <app-navbar />
+
+  <section class="order-details">
+    <p class="eyebrow">Twoje zamówienie</p>
+    <h1 class="section-title">Dane do zaproszeń</h1>
+
+    @if (isLoading() && !details()) {
+      <p class="order-details__state">Wczytujemy Twoje zamówienie…</p>
+    } @else if (loadError(); as error) {
+      <p class="order-details__state order-details__state--error" role="alert">
+        Nie udało się otworzyć formularza: {{ error.message }}
+      </p>
+    } @else if (details(); as data) {
+      @switch (data.state) {
+        @case ('ready') {
+          <div class="order-details__layout">
+            <div class="order-details__main">
+              @if (saved()) {
+                <div class="order-details__saved" role="status">
+                  <h2>Zapisane</h2>
+                  <p>
+                    Mamy Wasze treści. Przygotujemy projekt i wyślemy go do akceptacji na adres
+                    e-mail podany przy zamówieniu. Dopóki nie zamkniemy zamówienia, możesz tu wrócić
+                    i poprawić dane.
+                  </p>
+                  <button type="button" class="btn btn--outline" (click)="saved.set(false)">
+                    Popraw dane
+                  </button>
+                </div>
+              } @else {
+                @if (alreadySubmitted()) {
+                  <p class="order-details__note">
+                    Te dane już od Ciebie mamy — poniżej możesz je poprawić.
+                  </p>
+                }
+                @if (isLocked()) {
+                  <p class="order-details__note order-details__note--locked">
+                    Zamówienie jest zrealizowane, więc formularz jest tylko do wglądu.
+                  </p>
+                }
+
+                <form
+                  class="order-details__form"
+                  [formGroup]="form"
+                  (ngSubmit)="submit()"
+                  novalidate
+                >
+                  @for (field of fields; track field.key) {
+                    <label class="field">
+                      <span class="field__label">
+                        {{ field.label }}
+                        @if (field.required) {
+                          <span> *</span>
+                        }
+                      </span>
+                      @if (field.multiline) {
+                        <textarea
+                          rows="4"
+                          [formControlName]="field.key"
+                          [attr.maxlength]="field.maxLength"
+                        ></textarea>
+                      } @else {
+                        <input
+                          type="text"
+                          [formControlName]="field.key"
+                          [attr.maxlength]="field.maxLength"
+                          [class.field__input--error]="isInvalid(field.key)"
+                        />
+                      }
+                      @if (isInvalid(field.key)) {
+                        <span class="field__error">Uzupełnij to pole</span>
+                      }
+                    </label>
+                  }
+
+                  @if (errorMessage(); as message) {
+                    <p class="order-details__error" role="alert">{{ message }}</p>
+                  }
+
+                  @if (!isLocked()) {
+                    <button type="submit" class="btn btn--primary" [disabled]="submitting()">
+                      {{ submitting() ? 'Zapisywanie…' : 'Zapisz dane' }}
+                    </button>
+                  }
+                </form>
+              }
+            </div>
+
+            <aside class="order-details__aside">
+              <h2 class="order-details__aside-title">Zamówienie</h2>
+              <p class="order-details__number">#{{ data.order_id?.slice(0, 8) }}</p>
+              @if (data.items?.length) {
+                <ul class="order-details__items">
+                  @for (item of data.items; track item.name) {
+                    <li>{{ item.quantity }} × {{ item.name }}</li>
+                  }
+                </ul>
+              }
+              <p class="order-details__hint">
+                Te treści trafiają wprost na zaproszenia — sprawdź pisownię imion i nazw miejsc.
+                Projekt wyślemy do akceptacji, zanim cokolwiek pójdzie do druku.
+              </p>
+              <a class="order-details__link" routerLink="/contact">Coś się nie zgadza? Napisz</a>
+            </aside>
+          </div>
+        }
+        @case ('not_paid') {
+          <p class="order-details__state">
+            Formularz otworzy się, gdy zaksięgujemy płatność za to zamówienie. Wyślemy Ci wtedy
+            przypomnienie mailem — ten sam link będzie działał.
+          </p>
+        }
+        @case ('cancelled') {
+          <p class="order-details__state">
+            To zamówienie zostało anulowane.
+            <a routerLink="/contact">Napisz do nas</a>, jeśli to pomyłka.
+          </p>
+        }
+        @default {
+          <p class="order-details__state">
+            Nie znaleźliśmy zamówienia dla tego linku. Sprawdź, czy adres skopiował się w całości,
+            albo <a routerLink="/contact">napisz do nas</a>.
+          </p>
+        }
+      }
+    }
+  </section>
+
+  <app-footer />
+</main>

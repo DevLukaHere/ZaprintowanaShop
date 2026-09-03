@@ -12,6 +12,14 @@ export interface OrderLineInput {
   configuration: ProductConfiguration;
 }
 
+/** Maile transakcyjne wysyła Edge Function `send-order-email`. */
+export type OrderEmailKind = 'order-placed' | 'payment-received';
+
+export interface OrderEmailResult {
+  sent: boolean;
+  reason?: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class OrdersService {
   private readonly ordersResource = resource({
@@ -59,6 +67,29 @@ export class OrdersService {
     return data as string;
   }
 
+  /**
+   * Wysyłka nigdy nie blokuje głównej operacji — jeśli poczta nie jest skonfigurowana
+   * albo dostawca odmówi, zamówienie i tak jest złożone, a panel pokazuje link
+   * do formularza do wysłania ręcznie.
+   */
+  async sendEmail(orderId: string, kind: OrderEmailKind): Promise<OrderEmailResult> {
+    try {
+      const { data, error } = await supabase.functions.invoke<OrderEmailResult>(
+        'send-order-email',
+        { body: { orderId, kind } },
+      );
+      if (error) {
+        return { sent: false, reason: error.message };
+      }
+      return data ?? { sent: false, reason: 'no_response' };
+    } catch (invokeError) {
+      return {
+        sent: false,
+        reason: invokeError instanceof Error ? invokeError.message : 'invoke_failed',
+      };
+    }
+  }
+
   async updateStatus(orderId: string, status: OrderStatus): Promise<void> {
     const { error } = await supabase.from('orders').update({ status }).eq('id', orderId);
     if (error) {
@@ -67,7 +98,12 @@ export class OrdersService {
     this.reload();
   }
 
-  async updatePaymentStatus(orderId: string, paymentStatus: PaymentStatus): Promise<void> {
+  /** Oznaczenie jako opłacone uruchamia maila z linkiem do formularza. */
+  async updatePaymentStatus(
+    orderId: string,
+    paymentStatus: PaymentStatus,
+  ): Promise<OrderEmailResult | null> {
+    // `paid_at` ustawia trigger `orders_set_paid_at` — nie nadpisujemy go z klienta.
     const { error } = await supabase
       .from('orders')
       .update({ payment_status: paymentStatus })
@@ -75,6 +111,11 @@ export class OrdersService {
     if (error) {
       throw new Error(error.message);
     }
+
+    const emailResult =
+      paymentStatus === 'paid' ? await this.sendEmail(orderId, 'payment-received') : null;
+
     this.reload();
+    return emailResult;
   }
 }

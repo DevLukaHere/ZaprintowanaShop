@@ -2,11 +2,13 @@ import {
   AfterViewInit,
   Component,
   ElementRef,
+  computed,
   effect,
   inject,
   signal,
   viewChild,
 } from '@angular/core';
+import { PRODUCT_HIGHLIGHTS } from '../../models/collection';
 import { ProductsService } from '../../services/products.service';
 import { ProductCard } from '../product-card/product-card';
 
@@ -28,6 +30,10 @@ export class ProductCarousel implements AfterViewInit {
 
   private static readonly dragThresholdPx = 6;
 
+  /** Minimalna liczba kafelków w jednej kopii taśmy — przy krótkiej selekcji
+   *  powtarzamy produkty, żeby taśma wypełniła szerokość ekranu bez luk. */
+  private static readonly minItemsPerCopy = 8;
+
   private copyWidthPx = 0;
   private pointerDown = false;
   private isDragging = false;
@@ -36,18 +42,47 @@ export class ProductCarousel implements AfterViewInit {
   private dragStartClientX = 0;
   private dragStartTranslate = 0;
 
+  /** Zakładki, pod którymi jest przynajmniej jeden produkt. */
+  protected readonly highlights = computed(() => {
+    const products = this.productsService.products() ?? [];
+    return PRODUCT_HIGHLIGHTS.filter((highlight) =>
+      products.some((product) => product[highlight.flag]),
+    );
+  });
+
+  private readonly selectedSlug = signal<string | undefined>(undefined);
+
+  /** Wybór użytkownika, o ile nadal istnieje — inaczej pierwsza dostępna zakładka. */
+  protected readonly activeSlug = computed(() => {
+    const available = this.highlights();
+    const selected = this.selectedSlug();
+    return available.some((highlight) => highlight.slug === selected)
+      ? selected
+      : available[0]?.slug;
+  });
+
+  protected readonly visibleProducts = computed(() => {
+    const products = this.productsService.products() ?? [];
+    const active = this.highlights().find((highlight) => highlight.slug === this.activeSlug());
+    return active ? products.filter((product) => product[active.flag]) : products;
+  });
+
+  protected readonly carouselItems = computed(() => {
+    const products = this.visibleProducts();
+    if (!products.length) {
+      return [];
+    }
+    const repeats = Math.ceil(ProductCarousel.minItemsPerCopy / products.length);
+    const copy = Array.from({ length: repeats }, () => products).flat();
+    return [...copy, ...copy];
+  });
+
   constructor() {
     effect(() => {
-      const products = this.productsService.products();
-      if (products?.length) {
+      if (this.carouselItems().length) {
         queueMicrotask(() => this.setupCarouselAnimation());
       }
     });
-  }
-
-  protected get carouselItems() {
-    const products = this.productsService.products() ?? [];
-    return [...products, ...products];
   }
 
   ngAfterViewInit(): void {
@@ -65,6 +100,10 @@ export class ProductCarousel implements AfterViewInit {
       },
       true,
     );
+  }
+
+  protected selectHighlight(slug: string): void {
+    this.selectedSlug.set(slug);
   }
 
   protected onPointerDown(event: PointerEvent): void {
@@ -138,8 +177,14 @@ export class ProductCarousel implements AfterViewInit {
     return wrapped;
   }
 
+  /** Animacja przesuwa taśmę o dokładnie jedną kopię — stąd zakres [x, x + copyWidth]. */
+  private setAnimationRange(track: HTMLElement, from: number): void {
+    track.style.setProperty('--carousel-from', `${from}px`);
+    track.style.setProperty('--carousel-to', `${from + this.copyWidthPx}px`);
+  }
+
   private resumeAnimationFrom(track: HTMLElement, x: number): void {
-    track.style.setProperty('--carousel-offset', `${x}px`);
+    this.setAnimationRange(track, x);
     track.style.transform = `translateX(${x}px)`;
     track.classList.remove('carousel__track--animated');
     void track.offsetWidth;
@@ -163,9 +208,14 @@ export class ProductCarousel implements AfterViewInit {
     const offsetX = -this.copyWidthPx;
     const durationSeconds = this.copyWidthPx / this.carouselSpeedPxPerSecond;
 
-    track.style.setProperty('--carousel-offset', `${offsetX}px`);
+    this.setAnimationRange(track, offsetX);
     track.style.setProperty('--carousel-duration', `${durationSeconds}s`);
     track.style.transform = `translateX(${offsetX}px)`;
+
+    // Restart animacji — bez tego przełączenie zakładki zostawiłoby taśmę
+    // w połowie poprzedniego cyklu, z nieaktualną szerokością kopii.
+    track.classList.remove('carousel__track--animated');
+    void track.offsetWidth;
     track.classList.add('carousel__track--animated');
   }
 }

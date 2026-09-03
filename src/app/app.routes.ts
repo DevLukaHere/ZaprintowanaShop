@@ -12,17 +12,33 @@ export const routes: Routes = [
     title: 'Zamówienie — Zaprintowana',
     loadComponent: () => import('./pages/checkout/checkout').then((m) => m.CheckoutPage),
   },
-  { path: 'gallery', redirectTo: 'sklep', pathMatch: 'full' },
-  { path: 'sklep', title: 'Wszystkie produkty — Zaprintowana', loadComponent: catalog },
-  { path: 'kategoria/:category', title: 'Kategoria — Zaprintowana', loadComponent: catalog },
   {
-    path: 'kategoria/:category/:subcategory',
+    path: 'order/:token',
+    title: 'Dane do zaproszeń — Zaprintowana',
+    loadComponent: () =>
+      import('./pages/order-details/order-details').then((m) => m.OrderDetailsPage),
+  },
+  {
+    path: 'production-stages',
+    title: 'Etapy i czas realizacji — Zaprintowana',
+    loadComponent: () =>
+      import('./pages/production-stages/production-stages').then((m) => m.ProductionStagesPage),
+  },
+  {
+    path: 'contact',
+    title: 'Kontakt — Zaprintowana',
+    loadComponent: () => import('./pages/contact/contact').then((m) => m.ContactPage),
+  },
+  { path: 'shop', title: 'Wszystkie produkty — Zaprintowana', loadComponent: catalog },
+  { path: 'category/:category', title: 'Kategoria — Zaprintowana', loadComponent: catalog },
+  {
+    path: 'category/:category/:subcategory',
     title: 'Kategoria — Zaprintowana',
     loadComponent: catalog,
   },
-  { path: 'produkt/:id', title: 'Produkt — Zaprintowana', loadComponent: product },
+  { path: 'product/:id', title: 'Produkt — Zaprintowana', loadComponent: product },
   {
-    path: 'produkt/:id/probka',
+    path: 'product/:id/sample',
     title: 'Zamów próbne zaproszenie — Zaprintowana',
     data: { mode: 'sample' },
     loadComponent: product,
@@ -44,6 +60,13 @@ export const routes: Routes = [
     canActivate: [adminGuard],
     loadComponent: () =>
       import('./pages/admin-products/admin-products').then((m) => m.AdminProductsPage),
+  },
+  {
+    path: 'admin/messages',
+    title: 'Panel — wiadomości',
+    canActivate: [adminGuard],
+    loadComponent: () =>
+      import('./pages/admin-messages/admin-messages').then((m) => m.AdminMessagesPage),
   },
   { path: '**', redirectTo: '' },
 ];

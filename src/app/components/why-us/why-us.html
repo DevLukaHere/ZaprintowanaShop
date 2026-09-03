@@ -4,9 +4,12 @@
   <div class="why__grid">
     @for (feature of features; track feature.label) {
       <div class="why__item">
-        <span class="why__stat">{{ feature.stat }}</span>
+        <span class="why__stat">{{ feature.mark }}</span>
         <span class="why__label">{{ feature.label }}</span>
         <p class="why__description">{{ feature.description }}</p>
+        @if (feature.link; as link) {
+          <a class="why__link" [routerLink]="link.commands">{{ link.label }}</a>
+        }
       </div>
     }
   </div>

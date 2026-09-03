@@ -15,6 +15,9 @@ export const DISCOUNT_TIERS: readonly DiscountTier[] = [
 
 export const FREE_SHIPPING_THRESHOLD = 500;
 
+/** Standardowy czas realizacji zamówienia w dniach roboczych. */
+export const PRODUCTION_LEAD_DAYS = 4;
+
 export const SAMPLE_PRICING = {
   smallMaxQty: 3,
   smallPrice: 40,

@@ -4,9 +4,155 @@
   <main class="admin__content">
     <div class="admin__toolbar">
       <h1 class="admin__title">Produkty</h1>
-      <button type="button" class="btn btn--primary" (click)="openCreate()">
-        Dodaj produkt
-      </button>
+      <div class="admin__toolbar-actions">
+        <button
+          type="button"
+          class="btn btn--outline"
+          (click)="toggleTaxonomy()"
+          [attr.aria-expanded]="showTaxonomy()"
+        >
+          {{ showTaxonomy() ? 'Ukryj słowniki' : 'Kategorie, style, rodzaje' }}
+        </button>
+        <button type="button" class="btn btn--primary" (click)="openCreate()">Dodaj produkt</button>
+      </div>
+    </div>
+
+    @if (showTaxonomy()) {
+      <section class="taxonomy">
+        <h2 class="taxonomy__title">Słowniki</h2>
+        <p class="taxonomy__intro">
+          Kategorie, podkategorie, style i rodzaje napędzają menu, filtry i pasek kategorii w
+          sklepie. Nazwa jest po polsku i można ją zmienić w każdej chwili. Adres trafia do linków i
+          do danych produktów, więc jest po angielsku i ustala się go raz, przy dodawaniu.
+        </p>
+
+        <form
+          class="taxonomy__form"
+          [formGroup]="taxonomyForm"
+          (ngSubmit)="addTaxonomy()"
+          novalidate
+        >
+          <label class="field">
+            <span class="field__label">Co dodajesz</span>
+            <select formControlName="kind">
+              @for (kind of taxonomyKinds; track kind) {
+                <option [value]="kind">{{ taxonomyKindLabels[kind] }}</option>
+              }
+            </select>
+          </label>
+
+          @if (taxonomyNeedsParent()) {
+            <label class="field">
+              <span class="field__label">Kategoria nadrzędna</span>
+              <select formControlName="parent_slug">
+                <option value="">— wybierz —</option>
+                @for (category of mainCategories(); track category.slug) {
+                  <option [value]="category.slug">{{ category.label }}</option>
+                }
+              </select>
+            </label>
+          }
+
+          <label class="field">
+            <span class="field__label">Nazwa (widoczna w sklepie)</span>
+            <input type="text" formControlName="label" placeholder="np. Księgi gości" />
+          </label>
+
+          <label class="field">
+            <span class="field__label">Adres — po angielsku</span>
+            <input type="text" formControlName="slug" placeholder="np. guest-books" />
+            <span class="taxonomy__slug"> /category/…/{{ taxonomySlugPreview() || 'adres' }} </span>
+          </label>
+
+          <button type="submit" class="btn btn--primary" [disabled]="taxonomySubmitting()">
+            {{ taxonomySubmitting() ? 'Dodawanie…' : 'Dodaj' }}
+          </button>
+        </form>
+
+        @if (taxonomyError(); as message) {
+          <p class="admin__error" role="alert">{{ message }}</p>
+        }
+
+        <div class="taxonomy__groups">
+          @for (group of taxonomyGroups(); track group.kind) {
+            <div class="taxonomy__group">
+              <h3 class="taxonomy__group-title">{{ group.label }}</h3>
+              @if (group.entries.length === 0) {
+                <p class="taxonomy__empty">Brak wpisów.</p>
+              } @else {
+                <ul class="taxonomy__list">
+                  @for (entry of group.entries; track entry.id) {
+                    <li class="taxonomy__entry">
+                      <span class="taxonomy__entry-label">
+                        {{ entry.label }}
+                        @if (taxonomyParentLabel(entry); as parent) {
+                          <span class="taxonomy__entry-parent">w: {{ parent }}</span>
+                        }
+                      </span>
+                      <span class="taxonomy__entry-usage"> {{ taxonomyUsage(entry) }} prod. </span>
+                      <button
+                        type="button"
+                        class="taxonomy__action"
+                        (click)="renameTaxonomy(entry)"
+                      >
+                        Zmień nazwę
+                      </button>
+                      @if (entry.is_system) {
+                        <span
+                          class="taxonomy__system"
+                          title="Wpis wbudowany — na nim opierają się trasy i flagi produktu"
+                        >
+                          wbudowany
+                        </span>
+                      } @else {
+                        <button
+                          type="button"
+                          class="taxonomy__action taxonomy__action--danger"
+                          (click)="removeTaxonomy(entry)"
+                        >
+                          Usuń
+                        </button>
+                      }
+                    </li>
+                  }
+                </ul>
+              }
+            </div>
+          }
+        </div>
+      </section>
+    }
+
+    <div class="admin__browse">
+      <label class="admin__search">
+        <span class="admin__search-label">Szukaj</span>
+        <input
+          type="search"
+          placeholder="Nazwa produktu lub słowo z opisu"
+          [value]="searchTerm()"
+          (input)="searchTerm.set($any($event.target).value)"
+        />
+        @if (searchTerm()) {
+          <button type="button" class="admin__search-clear" (click)="searchTerm.set('')">
+            Wyczyść
+          </button>
+        }
+      </label>
+
+      <div class="admin__filters">
+        @for (option of categoryOptions(); track option.slug) {
+          <button
+            type="button"
+            class="admin__filter"
+            [class.admin__filter--active]="categoryFilter() === option.slug"
+            [attr.aria-pressed]="categoryFilter() === option.slug"
+            (click)="categoryFilter.set(option.slug)"
+          >
+            {{ option.label }}
+            <span class="admin__filter-count">{{ option.count }}</span>
+          </button>
+        }
+      </div>
     </div>
 
     @if (deleteError(); as message) {
@@ -21,9 +167,14 @@
       <p class="admin__placeholder">Ładowanie produktów…</p>
     } @else if ((productsService.products() ?? []).length === 0) {
       <p class="admin__placeholder">Nie ma jeszcze żadnych produktów.</p>
+    } @else if (visibleProducts().length === 0) {
+      <p class="admin__placeholder">
+        Żaden produkt nie pasuje do wyszukiwania.
+        <button type="button" class="admin__reset" (click)="resetBrowse()">Pokaż wszystkie</button>
+      </p>
     } @else {
       <div class="admin__grid">
-        @for (product of productsService.products(); track product.id) {
+        @for (product of visibleProducts(); track product.id) {
           <article class="product-card">
             @if (product.badge) {
               <span class="product-card__badge">{{ product.badge }}</span>
@@ -82,7 +233,11 @@
                 </span>
               }
               <span class="admin-modal__media-hint">
-                {{ mainPreviewUrl() ? 'Kliknij lub upuść, aby zmienić zdjęcie' : 'Kliknij lub upuść plik tutaj' }}
+                {{
+                  mainPreviewUrl()
+                    ? 'Kliknij lub upuść, aby zmienić zdjęcie'
+                    : 'Kliknij lub upuść plik tutaj'
+                }}
               </span>
               <input
                 class="admin-modal__file-input"
@@ -133,7 +288,13 @@
             <div class="field-row">
               <label class="field">
                 <span class="field__label">Cena (zł)</span>
-                <input type="number" formControlName="price" min="0" step="0.01" placeholder="np. 150" />
+                <input
+                  type="number"
+                  formControlName="price"
+                  min="0"
+                  step="0.01"
+                  placeholder="np. 150"
+                />
               </label>
 
               <label class="field">
@@ -146,7 +307,7 @@
               <label class="field">
                 <span class="field__label">Kategoria</span>
                 <select formControlName="category">
-                  @for (category of mainCategories; track category.slug) {
+                  @for (category of mainCategories(); track category.slug) {
                     <option [value]="category.slug">{{ category.label }}</option>
                   }
                 </select>
@@ -172,7 +333,19 @@
                 <input type="checkbox" formControlName="is_bestseller" />
                 <span>Bestseller</span>
               </label>
+              <label class="checkbox">
+                <input type="checkbox" formControlName="is_promo" />
+                <span>Promocja</span>
+              </label>
+              <label class="checkbox">
+                <input type="checkbox" formControlName="is_featured" />
+                <span>Polecane</span>
+              </label>
             </div>
+            <p class="admin-modal__hint">
+              Nowość, Bestseller, Promocja i Polecane to zakładki karuzeli na stronie głównej.
+              Zakładka bez żadnego produktu nie pojawia się na stronie.
+            </p>
 
             <label class="field">
               <span class="field__label">Krótki opis (nad przyciskiem „pełny opis”)</span>
@@ -190,7 +363,7 @@
           <fieldset class="admin-modal__section">
             <legend>Styl</legend>
             <div class="admin-modal__chips">
-              @for (style of allStyles; track style.slug) {
+              @for (style of allStyles(); track style.slug) {
                 <button
                   type="button"
                   class="chip"
@@ -204,7 +377,7 @@
 
             <legend>Rodzaj</legend>
             <div class="admin-modal__chips">
-              @for (type of allTypes; track type.slug) {
+              @for (type of allTypes(); track type.slug) {
                 <button
                   type="button"
                   class="chip"
@@ -221,8 +394,8 @@
         <fieldset class="admin-modal__section">
           <legend>Opcje do wyboru przez klienta</legend>
           <p class="admin-modal__hint">
-            Zaznacz tylko te warianty, które dotyczą tego produktu — niezaznaczone grupy nie
-            pojawią się na stronie produktu.
+            Zaznacz tylko te warianty, które dotyczą tego produktu — niezaznaczone grupy nie pojawią
+            się na stronie produktu.
           </p>
 
           @for (group of optionGroups; track group) {

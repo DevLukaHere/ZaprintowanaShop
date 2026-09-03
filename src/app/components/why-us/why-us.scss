@@ -9,12 +9,16 @@
   &__grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 2.5rem;
-    max-width: 56rem;
-    margin: 0 auto;
+    gap: 3rem 2.5rem;
+    max-width: 62rem;
+    margin: 3rem auto 0;
     text-align: center;
 
-    @media (max-width: 700px) {
+    @media (max-width: 900px) {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    @media (max-width: 560px) {
       grid-template-columns: 1fr;
     }
   }
@@ -29,7 +33,27 @@
   &__stat {
     font-family: var(--font-serif);
     font-size: 2rem;
+    line-height: 1.1;
     color: var(--color-blush-deep);
+    // Cormorant domyślnie daje cyfry nautyczne — w tej wielkości wyglądają jak literówki.
+    font-variant-numeric: lining-nums;
+  }
+
+  &__link {
+    margin-top: 0.1rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-blush-deep);
+    border-bottom: 1px solid var(--color-blush-border);
+    padding-bottom: 0.15rem;
+    text-decoration: none;
+
+    &:hover {
+      color: var(--color-text);
+      border-bottom-color: var(--color-text);
+    }
   }
 
   &__label {

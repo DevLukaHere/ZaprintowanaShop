@@ -1,15 +1,11 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { describeConfiguration } from '../../core/configuration-summary';
-import {
-  MAIN_CATEGORIES,
-  MainCategoryDef,
-  PRODUCT_STYLES,
-  PRODUCT_TYPES,
-} from '../../models/category';
+import { MainCategoryDef } from '../../models/category';
 import { PricePipe } from '../../pipes/price.pipe';
 import { CartLine, CartService } from '../../services/cart.service';
 import { ProductsService } from '../../services/products.service';
+import { TaxonomyService } from '../../services/taxonomy.service';
 
 @Component({
   selector: 'app-navbar',
@@ -21,9 +17,11 @@ export class Navbar {
   protected readonly cart = inject(CartService);
   protected readonly products = inject(ProductsService);
 
-  protected readonly categories = MAIN_CATEGORIES;
-  protected readonly styles = PRODUCT_STYLES;
-  protected readonly types = PRODUCT_TYPES;
+  private readonly taxonomy = inject(TaxonomyService);
+
+  protected readonly categories = this.taxonomy.mainCategories;
+  protected readonly styles = this.taxonomy.styles;
+  protected readonly types = this.taxonomy.types;
 
   protected readonly mobileMenuOpen = signal(false);
   protected readonly openCategory = signal<string | null>(null);

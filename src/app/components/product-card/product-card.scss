@@ -18,7 +18,7 @@
   &__media {
     position: relative;
     display: block;
-    aspect-ratio: 2 / 3;
+    aspect-ratio: var(--product-image-ratio);
     overflow: hidden;
     background: var(--color-bg-alt);
   }

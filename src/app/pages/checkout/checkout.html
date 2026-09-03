@@ -11,13 +11,15 @@
         <p>Numer Twojego zamówienia:</p>
         <code class="checkout__order-id">{{ orderId }}</code>
         <p class="checkout__success-note">
-          Potwierdzenie wyślemy na podany adres e-mail. Zachowaj numer zamówienia na wypadek
-          pytań.
+          Potwierdzenie wyślemy na podany adres e-mail. Zachowaj numer zamówienia na wypadek pytań.
+        </p>
+        <p class="checkout__success-note">
+          Zaraz po zaksięgowaniu płatności dostaniesz od nas drugą wiadomość — z linkiem do
+          formularza, w którym podasz treści na zaproszenia.
         </p>
         <a class="btn btn--outline" routerLink="/">Wróć do sklepu</a>
       </div>
     } @else if (lines().length === 0) {
-
       <div class="checkout__empty">
         <p>Twój koszyk jest pusty.</p>
         <a class="btn btn--outline" routerLink="/">Przejdź do produktów</a>
@@ -102,10 +104,17 @@
             </label>
           </div>
 
+          @if (needsPersonalisation()) {
+            <p class="checkout__personalisation-note">
+              Treści na zaproszenia — imiona, datę, godzinę i miejsca — zbierzemy osobnym
+              formularzem. Link do niego wyślemy mailem, gdy zaksięgujemy płatność.
+            </p>
+          }
+
           @if (needsGuestList()) {
             <p class="checkout__guest-note">
-              Wybrałaś/eś personalizację gości na kopertach — listę gości prześlij nam e-mailem
-              po złożeniu zamówienia lub wklej ją w polu „Uwagi do zamówienia” poniżej.
+              Wybrałaś/eś personalizację gości na kopertach — listę gości prześlij nam e-mailem po
+              złożeniu zamówienia lub wklej ją w polu „Uwagi do zamówienia” poniżej.
             </p>
           }
 
@@ -204,8 +213,8 @@
           }
 
           <p class="checkout__note">
-            Ceny produktów są cenami wyjściowymi („od”). Ostateczną wycenę potwierdzimy e-mailem
-            po ustaleniu szczegółów personalizacji.
+            Ceny produktów są cenami wyjściowymi („od”). Ostateczną wycenę potwierdzimy e-mailem po
+            ustaleniu szczegółów personalizacji.
           </p>
         </aside>
       </div>

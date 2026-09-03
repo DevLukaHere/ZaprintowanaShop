@@ -1,0 +1,29 @@
+<section class="showcase">
+  <h2 class="section-title">Nasza oferta</h2>
+
+  <div class="showcase__list">
+    @for (entry of entries(); track entry.title) {
+      <article class="showcase__row">
+        <div class="showcase__media">
+          @if (entry.imageUrl) {
+            <img [src]="entry.imageUrl" [alt]="entry.title" loading="lazy" />
+          } @else {
+            <div class="showcase__media-placeholder"></div>
+          }
+        </div>
+
+        <div class="showcase__body">
+          <h3 class="showcase__title">{{ entry.title }}</h3>
+          <p class="showcase__description">{{ entry.description }}</p>
+          <a
+            class="btn btn--outline showcase__link"
+            [routerLink]="entry.commands"
+            [queryParams]="entry.queryParams"
+          >
+            Zobacz wzory
+          </a>
+        </div>
+      </article>
+    }
+  </div>
+</section>

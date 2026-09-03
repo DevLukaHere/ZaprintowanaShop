@@ -38,6 +38,13 @@ export interface Order {
   shipping_city: string;
   shipping_postcode: string;
   notes: string | null;
+  /** Dane uroczystości z formularza wypełnianego po opłaceniu — jeden komplet na zamówienie. */
+  personalisation: Record<string, string> | null;
+  personalisation_submitted_at: string | null;
+  /** Sekret w linku do formularza. Klient dostaje go mailem po opłaceniu. */
+  personalisation_token: string;
+  order_placed_email_sent_at: string | null;
+  payment_email_sent_at: string | null;
   order_items: OrderItem[];
 }
 

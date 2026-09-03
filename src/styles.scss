@@ -1,4 +1,3 @@
-
 :root {
   --color-bg: #fbf5f2;
   --color-bg-alt: #f5e9e3;
@@ -39,6 +38,8 @@
   --font-serif: 'Cormorant Garamond', 'Georgia', serif;
   --font-sans: 'Montserrat', 'Segoe UI', sans-serif;
   --font-script: 'Parisienne', cursive;
+
+  --product-image-ratio: 3 / 4;
 }
 
 * {
@@ -132,5 +133,46 @@ button {
     &:hover {
       background: rgba(185, 126, 148, 0.1);
     }
+  }
+}
+
+/* Pola formularzy — checkout i formularz kontaktowy. */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+
+  &__label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+  }
+
+  input,
+  textarea {
+    font-family: var(--font-sans);
+    font-size: 0.9rem;
+    color: var(--color-text);
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 2px;
+    padding: 0.7rem 0.85rem;
+    resize: vertical;
+
+    &:focus {
+      outline: none;
+      border-color: var(--color-blush-deep);
+    }
+  }
+
+  &__input--error {
+    border-color: var(--color-wine);
+  }
+
+  &__error {
+    font-size: 0.75rem;
+    color: var(--color-wine);
   }
 }

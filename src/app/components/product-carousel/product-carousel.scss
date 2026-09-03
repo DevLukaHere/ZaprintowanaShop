@@ -8,13 +8,78 @@
   @media (max-width: 600px) {
     padding: 0.75rem 1rem 3.5rem;
   }
+
+  &__tabs {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.55rem;
+    padding: 2rem 1rem 0.5rem;
+  }
+
+  &__tab {
+    border: 1px solid var(--color-border);
+    background: transparent;
+    border-radius: 999px;
+    padding: 0.42rem 1.1rem;
+    font-family: var(--font-sans);
+    font-size: 0.78rem;
+    letter-spacing: 0.04em;
+    color: var(--color-text);
+    cursor: pointer;
+    transition:
+      background-color 0.2s ease,
+      border-color 0.2s ease,
+      color 0.2s ease;
+
+    &:hover {
+      border-color: var(--color-blush-border);
+      color: var(--color-blush-deep);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--color-blush-deep);
+      outline-offset: 2px;
+    }
+
+    &--active {
+      background: var(--color-blush-deep);
+      border-color: var(--color-blush-deep);
+      color: #fff;
+    }
+  }
 }
 
 .carousel {
+  position: relative;
   width: 100%;
   overflow: hidden;
   padding: 1rem 1rem;
-  mask-image: linear-gradient(to right, transparent 0, #000 3%, #000 97%, transparent 100%);
+
+  // Wygaszenie krawędzi robimy nakładkami, nie `mask-image`. Maska na przodku
+  // wypycha animację potomka z kompozytora w Firefoksie — każda klatka wraca
+  // wtedy na główny wątek i taśma przycina.
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 3%;
+    min-width: 1.5rem;
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  &::before {
+    left: 0;
+    background: linear-gradient(to right, var(--color-bg), transparent);
+  }
+
+  &::after {
+    right: 0;
+    background: linear-gradient(to left, var(--color-bg), transparent);
+  }
 
   &__track {
     display: flex;
@@ -35,7 +100,9 @@
     }
   }
 
-  &__track:has(&__item:hover) {
+  // `:has(:hover)` unieważnia styl przy każdym ruchu myszy nad szeroką taśmą —
+  // zwykły hover na kontenerze robi to samo dużo taniej.
+  &:hover &__track--animated {
     animation-play-state: paused;
   }
 
@@ -48,11 +115,19 @@
   }
 }
 
+// Przesunięcie dokładnie o szerokość jednej kopii, w pikselach — dzięki temu
+// pętla domyka się bezszwowo, a transformacja nie zależy od układu taśmy.
 @keyframes carousel-scroll {
   from {
-    transform: translateX(calc(var(--carousel-offset, 0px) + 20%));
+    transform: translateX(var(--carousel-from, 0px));
   }
   to {
-    transform: translateX(calc(var(--carousel-offset, 0px) + 50%));
+    transform: translateX(var(--carousel-to, 0px));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .carousel__track--animated {
+    animation: none;
   }
 }

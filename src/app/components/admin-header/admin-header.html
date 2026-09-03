@@ -23,6 +23,13 @@
     >
       Produkty
     </a>
+    <a
+      class="admin-header__tab"
+      [class.admin-header__tab--active]="active() === 'messages'"
+      routerLink="/admin/messages"
+    >
+      Wiadomości
+    </a>
   </nav>
 
   <div class="admin-header__account">

@@ -1,0 +1,93 @@
+<div class="admin">
+  <app-admin-header active="messages" />
+
+  <main class="admin__content">
+    <div class="admin__toolbar">
+      <h1 class="admin__title">Wiadomości z formularza kontaktowego</h1>
+
+      <div class="admin__filters">
+        <button
+          type="button"
+          class="admin__filter"
+          [class.admin__filter--active]="filter() === 'pending'"
+          [attr.aria-pressed]="filter() === 'pending'"
+          (click)="setFilter('pending')"
+        >
+          Nieobsłużone ({{ messagesService.pendingCount() }})
+        </button>
+        <button
+          type="button"
+          class="admin__filter"
+          [class.admin__filter--active]="filter() === 'all'"
+          [attr.aria-pressed]="filter() === 'all'"
+          (click)="setFilter('all')"
+        >
+          Wszystkie
+        </button>
+      </div>
+    </div>
+
+    @if (updateError(); as message) {
+      <p class="admin__error" role="alert">{{ message }}</p>
+    }
+
+    @if (messagesService.error(); as loadError) {
+      <p class="admin__error" role="alert">
+        Nie udało się pobrać wiadomości: {{ loadError.message }}
+      </p>
+    } @else if (messagesService.isLoading() && !messagesService.messages()) {
+      <p class="admin__placeholder">Ładowanie wiadomości…</p>
+    } @else if (visibleMessages().length === 0) {
+      <p class="admin__placeholder">
+        @if (filter() === 'pending') {
+          Wszystkie wiadomości są obsłużone.
+        } @else {
+          Nie ma jeszcze żadnych wiadomości.
+        }
+      </p>
+    } @else {
+      <ul class="admin__messages">
+        @for (message of visibleMessages(); track message.id) {
+          <li class="message" [class.message--handled]="message.handled">
+            <header class="message__head">
+              <div class="message__who">
+                <span class="message__name">{{ message.name }}</span>
+                <a class="message__email" [href]="'mailto:' + message.email">{{ message.email }}</a>
+                @if (message.phone) {
+                  <a class="message__phone" [href]="'tel:' + message.phone">{{ message.phone }}</a>
+                }
+              </div>
+              <time class="message__date" [attr.datetime]="message.created_at">
+                {{ message.created_at | date: 'dd.MM.yyyy HH:mm' }}
+              </time>
+            </header>
+
+            @if (message.subject) {
+              <p class="message__subject">{{ message.subject }}</p>
+            }
+
+            <p class="message__body">{{ message.message }}</p>
+
+            <div class="message__actions">
+              <button
+                type="button"
+                class="message__action"
+                (click)="toggleHandled(message.id, !message.handled)"
+              >
+                {{ message.handled ? 'Oznacz jako nieobsłużoną' : 'Oznacz jako obsłużoną' }}
+              </button>
+              <a
+                class="message__action"
+                [href]="
+                  'mailto:' + message.email + '?subject=' + (message.subject || 'Zaprintowana')
+                "
+              >
+                Odpowiedz e-mailem
+              </a>
+            </div>
+          </li>
+        }
+      </ul>
+    }
+  </main>
+</div>

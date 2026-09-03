@@ -80,10 +80,10 @@ export class ProductsService {
       const sub = filter.subcategory;
       if (sub) {
         if (isFlagSubcategory(sub)) {
-          if (sub === 'nowosci' && !product.is_new) {
+          if (sub === 'new' && !product.is_new) {
             return false;
           }
-          if (sub === 'bestsellery' && !product.is_bestseller) {
+          if (sub === 'bestsellers' && !product.is_bestseller) {
             return false;
           }
         } else if (product.subcategory !== sub) {

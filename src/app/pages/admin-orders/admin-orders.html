@@ -79,6 +79,10 @@
       <p class="admin__error" role="alert">{{ message }}</p>
     }
 
+    @if (emailNotice(); as message) {
+      <p class="admin__notice" role="status">{{ message }}</p>
+    }
+
     @if (ordersService.error(); as loadError) {
       <p class="admin__error" role="alert">
         Nie udało się pobrać zamówień: {{ loadError.message }}
@@ -123,7 +127,8 @@
               <th>Produkty</th>
               <th>
                 <button type="button" class="admin__sort" (click)="toggleSort('payment_status')">
-                  Płatność <span class="admin__sort-icon">{{ sortIndicator('payment_status') }}</span>
+                  Płatność
+                  <span class="admin__sort-icon">{{ sortIndicator('payment_status') }}</span>
                 </button>
               </th>
               <th>
@@ -146,6 +151,42 @@
 
                 <td>
                   <span class="admin__customer">{{ order.customer_name }}</span>
+                  @if (orderPersonalisation(order); as details) {
+                    <ul class="admin__personalisation">
+                      <li class="admin__personalisation-title">
+                        Dane do zaproszeń
+                        <span class="admin__muted">
+                          {{ order.personalisation_submitted_at | date: 'dd.MM.yyyy HH:mm' }}
+                        </span>
+                      </li>
+                      @for (detail of details; track detail.label) {
+                        <li>{{ detail.label }}: {{ detail.value }}</li>
+                      }
+                    </ul>
+                  } @else if (order.payment_status === 'paid') {
+                    <span class="admin__awaiting">Czeka na dane do zaproszeń</span>
+                  }
+
+                  @if (order.payment_status === 'paid') {
+                    <div class="admin__form-link">
+                      <button
+                        type="button"
+                        class="admin__link-action"
+                        (click)="copyDetailsFormUrl(order)"
+                      >
+                        {{
+                          copiedOrderId() === order.id ? 'Skopiowano' : 'Kopiuj link do formularza'
+                        }}
+                      </button>
+                      <button
+                        type="button"
+                        class="admin__link-action"
+                        (click)="resendDetailsEmail(order)"
+                      >
+                        {{ order.payment_email_sent_at ? 'Mail wysłany' : 'Wyślij maila' }}
+                      </button>
+                    </div>
+                  }
                   @if (order.notes) {
                     <span class="admin__notes" [title]="order.notes">Uwagi: {{ order.notes }}</span>
                   }

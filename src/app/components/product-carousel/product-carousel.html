@@ -1,4 +1,20 @@
 <section class="collections">
+  @if (highlights().length > 1) {
+    <nav class="collections__tabs" aria-label="Wyróżnione produkty">
+      @for (highlight of highlights(); track highlight.slug) {
+        <button
+          type="button"
+          class="collections__tab"
+          [class.collections__tab--active]="highlight.slug === activeSlug()"
+          [attr.aria-pressed]="highlight.slug === activeSlug()"
+          (click)="selectHighlight(highlight.slug)"
+        >
+          {{ highlight.label }}
+        </button>
+      }
+    </nav>
+  }
+
   <div class="carousel" #carouselViewport>
     <div
       class="carousel__track"
@@ -9,7 +25,7 @@
       (pointerup)="onPointerUp($event)"
       (pointercancel)="onPointerUp($event)"
     >
-      @for (collection of carouselItems; track $index) {
+      @for (collection of carouselItems(); track $index) {
         <div class="carousel__item">
           <app-product-card [product]="collection" />
         </div>

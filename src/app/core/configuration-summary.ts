@@ -58,14 +58,19 @@ export function describeConfiguration(
     details.push({ label: 'Realizacja', value: 'Express' });
   }
 
-  for (const field of PERSONALISATION_FIELDS) {
-    const value = configuration.personalisation?.[field.key];
-    if (value) {
-      details.push({ label: field.label, value });
-    }
-  }
-
   return details;
+}
+
+/** Dane uroczystości z formularza zamówienia — wspólne dla całego zamówienia. */
+export function describePersonalisation(
+  personalisation: Record<string, string> | null | undefined,
+): ConfigurationDetail[] {
+  if (!personalisation) {
+    return [];
+  }
+  return PERSONALISATION_FIELDS.filter((field) => !!personalisation[field.key]?.trim()).map(
+    (field) => ({ label: field.label, value: personalisation[field.key].trim() }),
+  );
 }
 
 export function configurationSummaryText(

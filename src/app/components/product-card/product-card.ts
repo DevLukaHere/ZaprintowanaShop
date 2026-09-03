@@ -1,6 +1,6 @@
 import { Component, DestroyRef, computed, inject, input, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { categoryLabel, subcategoryLabel } from '../../models/category';
+import { TaxonomyService } from '../../services/taxonomy.service';
 import { ResolvedCollection } from '../../models/collection';
 import { PricePipe } from '../../pipes/price.pipe';
 import { CartService } from '../../services/cart.service';
@@ -18,20 +18,20 @@ export class ProductCard {
 
   protected readonly cart = inject(CartService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly taxonomy = inject(TaxonomyService);
 
   protected readonly categoryCaption = computed(() => {
     const product = this.product();
     return (
-      subcategoryLabel(product.category, product.subcategory) || categoryLabel(product.category)
+      this.taxonomy.subcategoryLabel(product.category, product.subcategory) ||
+      this.taxonomy.categoryLabel(product.category)
     );
   });
 
   protected readonly hasOverlay = computed(() => this.product().imageUrls.length > 1);
 
   private readonly overlayIndex = signal(1);
-  protected readonly overlayImage = computed(
-    () => this.product().imageUrls[this.overlayIndex()],
-  );
+  protected readonly overlayImage = computed(() => this.product().imageUrls[this.overlayIndex()]);
 
   private cycleTimer: ReturnType<typeof setInterval> | null = null;
 

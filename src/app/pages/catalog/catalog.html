@@ -10,7 +10,7 @@
       <div class="catalog__filters">
         <div class="catalog__filter-group">
           <span class="catalog__filter-label">Styl</span>
-          @for (style of allStyles; track style.slug) {
+          @for (style of allStyles(); track style.slug) {
             <button
               type="button"
               class="catalog__chip"
@@ -25,7 +25,7 @@
 
         <div class="catalog__filter-group">
           <span class="catalog__filter-label">Rodzaj</span>
-          @for (type of allTypes; track type.slug) {
+          @for (type of allTypes(); track type.slug) {
             <button
               type="button"
               class="catalog__chip"

@@ -4,13 +4,8 @@ import { CategoryBar } from '../../components/category-bar/category-bar';
 import { Footer } from '../../components/footer/footer';
 import { Navbar } from '../../components/navbar/navbar';
 import { ProductCard } from '../../components/product-card/product-card';
-import {
-  PRODUCT_STYLES,
-  PRODUCT_TYPES,
-  findMainCategory,
-  subcategoryLabel,
-} from '../../models/category';
 import { ProductsService } from '../../services/products.service';
+import { TaxonomyService } from '../../services/taxonomy.service';
 
 function toList(value: string | undefined): string[] {
   return (value ?? '')
@@ -30,23 +25,24 @@ export class CatalogPage {
   private readonly route = inject(ActivatedRoute);
 
   protected readonly productsService = inject(ProductsService);
+  private readonly taxonomy = inject(TaxonomyService);
 
   readonly category = input<string | undefined>(undefined);
   readonly subcategory = input<string | undefined>(undefined);
   readonly styles = input<string | undefined>(undefined);
   readonly types = input<string | undefined>(undefined);
 
-  protected readonly allStyles = PRODUCT_STYLES;
-  protected readonly allTypes = PRODUCT_TYPES;
+  protected readonly allStyles = this.taxonomy.styles;
+  protected readonly allTypes = this.taxonomy.types;
 
   protected readonly activeStyles = computed(() => toList(this.styles()));
   protected readonly activeTypes = computed(() => toList(this.types()));
 
-  protected readonly mainCategory = computed(() => findMainCategory(this.category()));
+  protected readonly mainCategory = computed(() => this.taxonomy.findMainCategory(this.category()));
 
   protected readonly heading = computed(
     () =>
-      subcategoryLabel(this.category(), this.subcategory()) ||
+      this.taxonomy.subcategoryLabel(this.category(), this.subcategory()) ||
       this.mainCategory()?.label ||
       'Wszystkie produkty',
   );

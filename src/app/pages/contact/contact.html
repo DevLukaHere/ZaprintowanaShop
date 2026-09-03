@@ -1,0 +1,113 @@
+<main class="page">
+  <app-navbar />
+
+  <section class="contact">
+    <p class="eyebrow">Kontakt</p>
+    <h1 class="section-title">Napisz do nas</h1>
+
+    @if (sent()) {
+      <div class="contact__success">
+        <h2>Wiadomość wysłana</h2>
+        <p>
+          Dziękujemy — odpowiadamy w dni robocze, zwykle tego samego dnia. Jeśli pytanie dotyczy
+          złożonego zamówienia, podaj jego numer w kolejnej wiadomości.
+        </p>
+        <div class="contact__success-actions">
+          <a class="btn btn--outline" routerLink="/">Wróć do sklepu</a>
+          <button type="button" class="btn btn--outline" (click)="sent.set(false)">
+            Napisz kolejną wiadomość
+          </button>
+        </div>
+      </div>
+    } @else {
+      <div class="contact__layout">
+        <form class="contact__form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+          <label class="field">
+            <span class="field__label">Imię i nazwisko *</span>
+            <input
+              type="text"
+              formControlName="name"
+              autocomplete="name"
+              [class.field__input--error]="isInvalid('name')"
+            />
+            @if (isInvalid('name')) {
+              <span class="field__error">Podaj imię i nazwisko</span>
+            }
+          </label>
+
+          <div class="contact__row">
+            <label class="field">
+              <span class="field__label">E-mail *</span>
+              <input
+                type="email"
+                formControlName="email"
+                autocomplete="email"
+                [class.field__input--error]="isInvalid('email')"
+              />
+              @if (isInvalid('email')) {
+                <span class="field__error">Podaj poprawny adres e-mail</span>
+              }
+            </label>
+
+            <label class="field">
+              <span class="field__label">Telefon</span>
+              <input type="tel" formControlName="phone" autocomplete="tel" />
+            </label>
+          </div>
+
+          <label class="field">
+            <span class="field__label">Temat</span>
+            <input type="text" formControlName="subject" placeholder="np. zaproszenia na lipiec" />
+          </label>
+
+          <label class="field">
+            <span class="field__label">Wiadomość *</span>
+            <textarea
+              rows="6"
+              formControlName="message"
+              [class.field__input--error]="isInvalid('message')"
+            ></textarea>
+            @if (isInvalid('message')) {
+              <span class="field__error">Napisz przynajmniej kilka słów</span>
+            }
+          </label>
+
+          @if (errorMessage(); as message) {
+            <p class="contact__error" role="alert">{{ message }}</p>
+          }
+
+          <button type="submit" class="btn btn--primary" [disabled]="submitting()">
+            {{ submitting() ? 'Wysyłanie…' : 'Wyślij wiadomość' }}
+          </button>
+        </form>
+
+        <aside class="contact__aside">
+          <h2 class="contact__aside-title">Zanim napiszesz</h2>
+          <ul class="contact__list">
+            <li>
+              Standardowy czas realizacji to {{ leadDays }} dni robocze od akceptacji projektu —
+              szczegóły rozpisaliśmy w <a routerLink="/production-stages">etapach realizacji</a>.
+            </li>
+            <li>Próbkę wybranego wzoru zamówisz bezpośrednio na stronie produktu.</li>
+            <li>
+              Pytasz o złożone zamówienie? Podaj jego numer — dostajesz go w potwierdzeniu e-mailem.
+            </li>
+          </ul>
+
+          <div class="contact__social">
+            <span class="contact__aside-label">Jesteśmy też tutaj</span>
+            <a href="https://www.facebook.com/zaprintowana/" target="_blank" rel="noopener">
+              Facebook
+            </a>
+            <a href="https://www.instagram.com/zaprintowana/" target="_blank" rel="noopener">
+              Instagram
+            </a>
+            <a href="https://www.tiktok.com/@zaprintowana" target="_blank" rel="noopener">TikTok</a>
+          </div>
+        </aside>
+      </div>
+    }
+  </section>
+
+  <app-footer />
+</main>

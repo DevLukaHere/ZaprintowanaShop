@@ -38,6 +38,24 @@
     }
   }
 
+  &__links {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem 1.5rem;
+    font-size: 0.78rem;
+
+    a {
+      color: var(--color-text-muted);
+      text-decoration: none;
+      letter-spacing: 0.04em;
+
+      &:hover {
+        color: var(--color-blush-deep);
+      }
+    }
+  }
+
   &__note {
     font-size: 0.75rem;
     letter-spacing: 0.08em;

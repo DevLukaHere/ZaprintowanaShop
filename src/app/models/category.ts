@@ -1,4 +1,12 @@
-export type MainCategory = 'zaproszenia' | 'dodatki' | 'indywidualne' | 'dodruk';
+/**
+ * Kategorie, style i rodzaje są redagowane w panelu i trzymane w tabeli `taxonomy`.
+ * Stałe poniżej są wyłącznie wartościami startowymi: pokazujemy je, zanim tabela
+ * się wczyta, i z nich seedowana była baza. Danymi produkcyjnymi zarządza
+ * `TaxonomyService`.
+ */
+
+/** Slug kategorii głównej. Nie jest już zamkniętą listą — admin może dodać kolejne. */
+export type MainCategory = string;
 
 export interface CategoryLink {
   slug: string;
@@ -11,84 +19,101 @@ export interface MainCategoryDef extends CategoryLink {
   filterable: boolean;
 }
 
-export const PRODUCT_STYLES: readonly CategoryLink[] = [
-  { slug: 'kwiatowe', label: 'Kwiatowe' },
+export const PRODUCT_STYLES_SEED: readonly CategoryLink[] = [
+  { slug: 'floral', label: 'Kwiatowe' },
   { slug: 'glamour', label: 'Glamour' },
   { slug: 'boho', label: 'Boho' },
-  { slug: 'minimalistyczne', label: 'Minimalistyczne' },
+  { slug: 'minimalist', label: 'Minimalistyczne' },
 ];
 
-export const PRODUCT_TYPES: readonly CategoryLink[] = [
-  { slug: 'zlocone', label: 'Złocone' },
-  { slug: 'ze-zdjeciem', label: 'Ze zdjęciem' },
-  { slug: 'jednokartkowe', label: 'Jednokartkowe' },
-  { slug: 'nowoczesne', label: 'Nowoczesne' },
-  { slug: 'eleganckie', label: 'Eleganckie' },
-  { slug: 'dla-rodzicow', label: 'Dla rodziców' },
+export const PRODUCT_TYPES_SEED: readonly CategoryLink[] = [
+  { slug: 'gilded', label: 'Złocone' },
+  { slug: 'with-photo', label: 'Ze zdjęciem' },
+  { slug: 'single-card', label: 'Jednokartkowe' },
+  { slug: 'modern', label: 'Nowoczesne' },
+  { slug: 'elegant', label: 'Eleganckie' },
+  { slug: 'for-parents', label: 'Dla rodziców' },
 ];
 
-export const MAIN_CATEGORIES: readonly MainCategoryDef[] = [
+export const MAIN_CATEGORIES_SEED: readonly MainCategoryDef[] = [
   {
-    slug: 'zaproszenia',
+    slug: 'invitations',
     label: 'Zaproszenia',
     filterable: true,
     subcategories: [
-      { slug: 'nowosci', label: 'Nowości' },
-      { slug: 'bestsellery', label: 'Bestsellery' },
+      { slug: 'new', label: 'Nowości' },
+      { slug: 'bestsellers', label: 'Bestsellery' },
     ],
   },
   {
-    slug: 'dodatki',
+    slug: 'extras',
     label: 'Dodatki',
     filterable: true,
     subcategories: [
-      { slug: 'winietki', label: 'Winietki' },
+      { slug: 'place-cards', label: 'Winietki' },
       { slug: 'menu', label: 'Menu' },
-      { slug: 'nr-stolow', label: 'Nr stołów' },
-      { slug: 'zdrapki', label: 'Zdrapki' },
-      { slug: 'zawieszki-na-alkohol', label: 'Zawieszki na alkohol' },
-      { slug: 'tablice', label: 'Tablice' },
-      { slug: 'plan-stolow', label: 'Plan stołów' },
-      { slug: 'podziekowania', label: 'Podziękowania' },
+      { slug: 'table-numbers', label: 'Nr stołów' },
+      { slug: 'scratch-cards', label: 'Zdrapki' },
+      { slug: 'bottle-tags', label: 'Zawieszki na alkohol' },
+      { slug: 'signs', label: 'Tablice' },
+      { slug: 'seating-chart', label: 'Plan stołów' },
+      { slug: 'thank-you-cards', label: 'Podziękowania' },
     ],
   },
-  { slug: 'indywidualne', label: 'Zamówienie indywidualne', filterable: false, subcategories: [] },
-  { slug: 'dodruk', label: 'Dodruk', filterable: false, subcategories: [] },
+  { slug: 'custom-order', label: 'Zamówienie indywidualne', filterable: false, subcategories: [] },
+  { slug: 'reprint', label: 'Dodruk', filterable: false, subcategories: [] },
 ];
 
-export const FLAG_SUBCATEGORIES = ['nowosci', 'bestsellery'] as const;
+/**
+ * Podkategorie wyliczane z flag produktu (`is_new`, `is_bestseller`), a nie z pola
+ * `subcategory`. To powiązanie siedzi w kolumnach tabeli `products`, więc zostaje w kodzie.
+ */
+export const FLAG_SUBCATEGORIES = ['new', 'bestsellers'] as const;
 export type FlagSubcategory = (typeof FLAG_SUBCATEGORIES)[number];
 
 export function isFlagSubcategory(slug: string): slug is FlagSubcategory {
   return (FLAG_SUBCATEGORIES as readonly string[]).includes(slug);
 }
 
-export function findMainCategory(slug: string | undefined): MainCategoryDef | undefined {
-  return MAIN_CATEGORIES.find((category) => category.slug === slug);
+export function findMainCategoryIn(
+  categories: readonly MainCategoryDef[],
+  slug: string | undefined,
+): MainCategoryDef | undefined {
+  return categories.find((category) => category.slug === slug);
 }
 
-export function categoryLabel(slug: string | undefined): string {
-  return findMainCategory(slug)?.label ?? '';
-}
-
-export function subcategoryLabel(main: string | undefined, sub: string | undefined): string {
+export function subcategoryLabelIn(
+  categories: readonly MainCategoryDef[],
+  main: string | undefined,
+  sub: string | undefined,
+): string {
   if (!sub) {
     return '';
   }
-  const fromMain = findMainCategory(main)?.subcategories.find((entry) => entry.slug === sub);
+  const fromMain = findMainCategoryIn(categories, main)?.subcategories.find(
+    (entry) => entry.slug === sub,
+  );
   if (fromMain) {
     return fromMain.label;
   }
-  const anywhere = MAIN_CATEGORIES.flatMap((category) => category.subcategories).find(
-    (entry) => entry.slug === sub,
-  );
+  const anywhere = categories
+    .flatMap((category) => category.subcategories)
+    .find((entry) => entry.slug === sub);
   return anywhere?.label ?? sub;
 }
 
-export function styleLabel(slug: string): string {
-  return PRODUCT_STYLES.find((style) => style.slug === slug)?.label ?? slug;
+export function labelIn(entries: readonly CategoryLink[], slug: string): string {
+  return entries.find((entry) => entry.slug === slug)?.label ?? slug;
 }
 
-export function typeLabel(slug: string): string {
-  return PRODUCT_TYPES.find((type) => type.slug === slug)?.label ?? slug;
+/** Slug z etykiety: „Nr stołów” → „nr-stolow”. */
+export function slugify(label: string): string {
+  return label
+    .trim()
+    .toLowerCase()
+    .replace(/\u0142/g, 'l')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
 }

@@ -2,7 +2,7 @@
   @if (main(); as category) {
     <a
       class="category-bar__link"
-      [routerLink]="['/kategoria', category.slug]"
+      [routerLink]="['/category', category.slug]"
       routerLinkActive="category-bar__link--active"
       [routerLinkActiveOptions]="{ exact: true }"
     >
@@ -11,17 +11,17 @@
     @for (sub of category.subcategories; track sub.slug) {
       <a
         class="category-bar__link"
-        [routerLink]="['/kategoria', category.slug, sub.slug]"
+        [routerLink]="['/category', category.slug, sub.slug]"
         routerLinkActive="category-bar__link--active"
       >
         {{ sub.label }}
       </a>
     }
   } @else {
-    @for (category of mainCategories; track category.slug) {
+    @for (category of mainCategories(); track category.slug) {
       <a
         class="category-bar__link"
-        [routerLink]="['/kategoria', category.slug]"
+        [routerLink]="['/category', category.slug]"
         routerLinkActive="category-bar__link--active"
       >
         {{ category.label }}

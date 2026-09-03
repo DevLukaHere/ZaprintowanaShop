@@ -1,4 +1,12 @@
-import { Component, ElementRef, computed, inject, input, linkedSignal, viewChild } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  computed,
+  inject,
+  input,
+  linkedSignal,
+  viewChild,
+} from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { CategoryBar } from '../../components/category-bar/category-bar';
 import { EnvelopePrintPicker } from '../../components/envelope-print-picker/envelope-print-picker';
@@ -19,7 +27,6 @@ import {
 import {
   ENVELOPE_TEXT_MAX_LENGTH,
   EnvelopePrintId,
-  PERSONALISATION_FIELDS,
   ProductConfiguration,
   resolveEnvelopePrintOptions,
 } from '../../models/product-options';
@@ -58,11 +65,8 @@ export class ProductPage {
   protected readonly belowMinimumFee = BELOW_MIN_QUANTITY_FEE;
   protected readonly expressPercent = EXPRESS_SURCHARGE_RATE * 100;
   protected readonly freeShippingThreshold = FREE_SHIPPING_THRESHOLD;
-  protected readonly discountTiers = [...DISCOUNT_TIERS].sort(
-    (a, b) => a.threshold - b.threshold,
-  );
+  protected readonly discountTiers = [...DISCOUNT_TIERS].sort((a, b) => a.threshold - b.threshold);
   protected readonly samplePricing = SAMPLE_PRICING;
-  protected readonly personalisationFields = PERSONALISATION_FIELDS;
   protected readonly envelopeTextMaxLength = ENVELOPE_TEXT_MAX_LENGTH;
 
   protected readonly product = computed(() => this.productsService.getById(this.id()));
@@ -77,9 +81,6 @@ export class ProductPage {
   );
   protected readonly envelopeText = linkedSignal<string>(() => (this.id(), ''));
   protected readonly express = linkedSignal<boolean>(() => (this.id(), false));
-  protected readonly personalisation = linkedSignal<Record<string, string>>(
-    () => (this.id(), {}),
-  );
   protected readonly quantity = linkedSignal<number>(() => (this.isSample() ? 1 : MIN_QUANTITY));
 
   protected readonly paperOptions = computed(() => this.product()?.paper_options ?? []);
@@ -101,8 +102,8 @@ export class ProductPage {
     () => !this.isSample() && !!this.selectedPrint()?.requiresGuestList,
   );
 
-  protected readonly showPersonalisation = computed(
-    () => !this.isSample() && this.product()?.category === 'zaproszenia',
+  protected readonly showPersonalisationNote = computed(
+    () => !this.isSample() && this.product()?.category === 'invitations',
   );
 
   protected readonly configuration = computed<ProductConfiguration>(() => ({
@@ -113,7 +114,6 @@ export class ProductPage {
     envelopePrintId: this.guestPersonalisation() ? this.envelopePrintId() : undefined,
     envelopeText: this.showEnvelopeText() ? this.envelopeText().trim() || undefined : undefined,
     express: this.express(),
-    personalisation: this.showPersonalisation() ? this.personalisation() : {},
   }));
 
   protected readonly unitPrice = computed(() => {
@@ -158,10 +158,6 @@ export class ProductPage {
     const product = this.product();
     return product ? this.productsService.related(product) : [];
   });
-
-  protected setPersonalisation(key: string, value: string): void {
-    this.personalisation.update((current) => ({ ...current, [key]: value }));
-  }
 
   protected setQuantity(value: number): void {
     this.quantity.set(Math.max(1, Math.min(9999, Math.floor(value) || 1)));

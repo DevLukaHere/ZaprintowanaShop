@@ -1,0 +1,39 @@
+<main class="page">
+  <app-navbar />
+
+  <section class="stages">
+    <p class="eyebrow">Jak pracujemy</p>
+    <h1 class="section-title">Etapy i czas realizacji</h1>
+
+    <p class="stages__lead">
+      Standardowe zamówienie realizujemy w {{ leadDays }} dni robocze, licząc od akceptacji
+      projektu. Poniżej rozpisujemy, co dzieje się na każdym etapie i ile zwykle trwa.
+    </p>
+
+    <ol class="stages__list">
+      @for (stage of stages; track stage.title; let i = $index) {
+        <li class="stages__item">
+          <span class="stages__number">{{ i + 1 }}</span>
+          <div class="stages__body">
+            <h2 class="stages__title">{{ stage.title }}</h2>
+            <span class="stages__duration">{{ stage.duration }}</span>
+            <p class="stages__description">{{ stage.description }}</p>
+          </div>
+        </li>
+      }
+    </ol>
+
+    <div class="stages__note">
+      <h2 class="stages__note-title">Realizacja express</h2>
+      <p>
+        Spieszycie się? Przy każdym produkcie możecie zaznaczyć realizację express — wtedy Wasze
+        zamówienie wchodzi do produkcji poza kolejnością, za dopłatą {{ expressPercent }}% do ceny.
+        Etap akceptacji projektu przebiega tak samo, więc im szybciej odeślecie akceptację, tym
+        szybciej wyślemy paczkę.
+      </p>
+      <a class="btn btn--outline" routerLink="/contact">Masz pytanie? Napisz do nas</a>
+    </div>
+  </section>
+
+  <app-footer />
+</main>

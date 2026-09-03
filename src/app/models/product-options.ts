@@ -111,11 +111,13 @@ export interface PersonalisationField {
   label: string;
   maxLength: number;
   multiline?: boolean;
+  required?: boolean;
 }
 
+/** Dane uroczystości — zbierane raz, w formularzu zamówienia (nie na karcie produktu). */
 export const PERSONALISATION_FIELDS: readonly PersonalisationField[] = [
-  { key: 'couple', label: 'Imiona pary młodej', maxLength: 80 },
-  { key: 'date', label: 'Data uroczystości', maxLength: 40 },
+  { key: 'couple', label: 'Imiona pary młodej', maxLength: 80, required: true },
+  { key: 'date', label: 'Data uroczystości', maxLength: 40, required: true },
   { key: 'time', label: 'Godzina ceremonii', maxLength: 20 },
   { key: 'ceremonyVenue', label: 'Miejsce ceremonii', maxLength: 120 },
   { key: 'receptionVenue', label: 'Miejsce przyjęcia', maxLength: 120 },
@@ -130,9 +132,8 @@ export interface ProductConfiguration {
   envelopePrintId?: EnvelopePrintId;
   envelopeText?: string;
   express: boolean;
-  personalisation?: Record<string, string>;
 }
 
 export function emptyConfiguration(): ProductConfiguration {
-  return { guestPersonalisation: false, express: false, personalisation: {} };
+  return { guestPersonalisation: false, express: false };
 }

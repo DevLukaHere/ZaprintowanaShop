@@ -54,6 +54,17 @@ export class CheckoutPage {
   protected readonly totals = this.cart.totals;
   protected readonly minQuantity = MIN_QUANTITY;
 
+  /** Zapowiedź formularza pokazujemy tylko, gdy w koszyku jest zaproszenie na zamówienie. */
+  protected readonly needsPersonalisation = computed(() =>
+    this.cart
+      .lines()
+      .some(
+        (line) =>
+          line.mode !== 'sample' &&
+          this.productsService.getById(line.productId)?.category === 'invitations',
+      ),
+  );
+
   protected readonly needsGuestList = computed(() =>
     this.cart.lines().some((line) => {
       if (!line.configuration.guestPersonalisation || line.mode === 'sample') {
@@ -103,6 +114,10 @@ export class CheckoutPage {
         { ...details, notes: this.notesWithConfiguration(details.notes) },
         this.cart.lines(),
       );
+
+      // Potwierdzenie mailem jest miłym dodatkiem, nie warunkiem złożenia zamówienia.
+      void this.orders.sendEmail(orderId, 'order-placed');
+
       this.placedOrderId.set(orderId);
       this.cart.clearCart();
       this.form.reset();

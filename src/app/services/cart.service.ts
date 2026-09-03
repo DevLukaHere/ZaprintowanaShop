@@ -3,8 +3,8 @@ import { OrderMode, cartTotals, lineTotals, unitPrice } from '../core/pricing';
 import { Collection } from '../models/collection';
 import { ProductConfiguration, emptyConfiguration } from '../models/product-options';
 
-const CART_KEY = 'zaprintowana:cart:v2';
-const LEGACY_CART_KEY = 'zaprintowana:cart';
+const CART_KEY = 'zaprintowana:cart:v3';
+const LEGACY_CART_KEYS = ['zaprintowana:cart', 'zaprintowana:cart:v2'];
 const WISHLIST_KEY = 'zaprintowana:wishlist';
 
 export interface CartLine {
@@ -43,11 +43,6 @@ function configurationKey(
     configuration.envelopePrintId ?? '',
     configuration.envelopeText ?? '',
     configuration.express ? 'express' : '',
-    JSON.stringify(
-      Object.entries(configuration.personalisation ?? {})
-        .filter(([, value]) => !!value)
-        .sort(([a], [b]) => a.localeCompare(b)),
-    ),
   ];
   return parts.join('|');
 }
@@ -70,7 +65,9 @@ export class CartService {
   private load(): CartLine[] {
     const lines = readJson<CartLine[]>(CART_KEY, []);
     if (typeof localStorage !== 'undefined') {
-      localStorage.removeItem(LEGACY_CART_KEY);
+      // Stare koszyki miały dane uroczystości w konfiguracji pozycji — od v3
+      // zbieramy je raz, w formularzu zamówienia, więc tamtych nie da się odtworzyć.
+      LEGACY_CART_KEYS.forEach((key) => localStorage.removeItem(key));
     }
     return Array.isArray(lines) ? lines.filter((line) => !!line?.productId) : [];
   }

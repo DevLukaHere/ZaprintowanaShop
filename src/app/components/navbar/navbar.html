@@ -6,7 +6,14 @@
     [attr.aria-expanded]="mobileMenuOpen()"
     aria-label="Menu"
   >
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.8"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    >
       @if (mobileMenuOpen()) {
         <path d="M6 6l12 12M18 6L6 18"></path>
       } @else {
@@ -17,7 +24,15 @@
 
   <a class="navbar__brand" routerLink="/">
     <span class="navbar__brand-icon">
-      <svg class="navbar__brand-icon-default" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <svg
+        class="navbar__brand-icon-default"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.6"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
         <path d="M12 3l2.2 5.8L20 11l-5.8 2.2L12 19l-2.2-5.8L4 11l5.8-2.2L12 3z"></path>
       </svg>
       <svg class="navbar__brand-icon-hover" viewBox="0 0 24 24" fill="currentColor" stroke="none">
@@ -31,7 +46,7 @@
   </a>
 
   <nav class="navbar__links" [class.navbar__links--open]="mobileMenuOpen()">
-    @for (category of categories; track category.slug) {
+    @for (category of categories(); track category.slug) {
       <div
         class="navbar__nav-item"
         [class.navbar__nav-item--open]="openCategory() === category.slug"
@@ -40,7 +55,7 @@
       >
         <a
           class="navbar__nav-link"
-          [routerLink]="['/kategoria', category.slug]"
+          [routerLink]="['/category', category.slug]"
           (click)="closeMenus()"
         >
           {{ category.label }}
@@ -54,18 +69,25 @@
             [attr.aria-expanded]="openCategory() === category.slug"
             [attr.aria-label]="'Pokaż podkategorie: ' + category.label"
           >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
               <path d="M6 9l6 6 6-6"></path>
             </svg>
           </button>
 
           <div class="navbar__dropdown">
             <div class="navbar__dropdown-column">
-              <a [routerLink]="['/kategoria', category.slug]" (click)="closeMenus()">
+              <a [routerLink]="['/category', category.slug]" (click)="closeMenus()">
                 Wszystkie {{ category.label.toLowerCase() }}
               </a>
               @for (sub of category.subcategories; track sub.slug) {
-                <a [routerLink]="['/kategoria', category.slug, sub.slug]" (click)="closeMenus()">
+                <a [routerLink]="['/category', category.slug, sub.slug]" (click)="closeMenus()">
                   {{ sub.label }}
                 </a>
               }
@@ -74,9 +96,9 @@
             @if (category.filterable) {
               <div class="navbar__dropdown-column">
                 <span class="navbar__dropdown-heading">Styl</span>
-                @for (style of styles; track style.slug) {
+                @for (style of styles(); track style.slug) {
                   <a
-                    [routerLink]="['/kategoria', category.slug]"
+                    [routerLink]="['/category', category.slug]"
                     [queryParams]="{ styles: style.slug }"
                     (click)="closeMenus()"
                   >
@@ -87,9 +109,9 @@
 
               <div class="navbar__dropdown-column">
                 <span class="navbar__dropdown-heading">Rodzaj</span>
-                @for (type of types; track type.slug) {
+                @for (type of types(); track type.slug) {
                   <a
-                    [routerLink]="['/kategoria', category.slug]"
+                    [routerLink]="['/category', category.slug]"
                     [queryParams]="{ types: type.slug }"
                     (click)="closeMenus()"
                   >
@@ -106,7 +128,14 @@
 
   <label class="navbar__search">
     <input type="text" placeholder="Czego szukasz?" />
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.6"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    >
       <circle cx="11" cy="11" r="7"></circle>
       <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
     </svg>
@@ -120,8 +149,17 @@
       [attr.aria-expanded]="panelOpen() && panelContent() === 'wishlist'"
     >
       <span class="navbar__action-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 1 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.6"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path
+            d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 1 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
+          ></path>
         </svg>
         @if (cart.wishlistCount() > 0) {
           <span class="navbar__badge">{{ cart.wishlistCount() }}</span>
@@ -137,7 +175,14 @@
       [attr.aria-expanded]="panelOpen() && panelContent() === 'cart'"
     >
       <span class="navbar__action-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.6"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
           <path d="M6 8h12l-1 12.5a1 1 0 0 1-1 .9H8a1 1 0 0 1-1-.9L6 8z"></path>
           <path d="M9 8V6.5a3 3 0 0 1 6 0V8"></path>
         </svg>
@@ -157,7 +202,9 @@
 <aside class="navbar__panel" [class.navbar__panel--open]="panelOpen()">
   <div class="navbar__panel-header">
     <h3>{{ panelContent() === 'wishlist' ? 'Ulubione' : 'Koszyk' }}</h3>
-    <button type="button" class="navbar__panel-close" (click)="closePanel()" aria-label="Zamknij">×</button>
+    <button type="button" class="navbar__panel-close" (click)="closePanel()" aria-label="Zamknij">
+      ×
+    </button>
   </div>
 
   <div class="navbar__panel-body">
@@ -170,7 +217,7 @@
             <li class="navbar__panel-item">
               <a
                 class="navbar__panel-link"
-                [routerLink]="['/produkt', item.id]"
+                [routerLink]="['/product', item.id]"
                 (click)="closePanel()"
               >
                 @if (item.imageUrl) {
@@ -202,7 +249,7 @@
             <li class="navbar__panel-item">
               <a
                 class="navbar__panel-link"
-                [routerLink]="['/produkt', entry.line.productId]"
+                [routerLink]="['/product', entry.line.productId]"
                 (click)="closePanel()"
               >
                 @if (entry.imageUrl) {
@@ -242,7 +289,11 @@
           <strong>{{ cart.totals().total | price }}</strong>
         </div>
 
-        <a class="btn btn--primary navbar__panel-checkout" routerLink="/checkout" (click)="closePanel()">
+        <a
+          class="btn btn--primary navbar__panel-checkout"
+          routerLink="/checkout"
+          (click)="closePanel()"
+        >
           Przejdź do zamówienia
         </a>
       }

@@ -10,11 +10,7 @@
       <app-category-bar [category]="item.category" />
 
       <div class="product__layout">
-        <app-product-gallery
-          class="product__gallery"
-          [images]="item.imageUrls"
-          [alt]="item.name"
-        />
+        <app-product-gallery class="product__gallery" [images]="item.imageUrls" [alt]="item.name" />
 
         <div class="product__config">
           <header class="product__header">
@@ -26,15 +22,15 @@
 
           <div class="product__quick-actions">
             @if (isSample()) {
-              <a class="btn btn--outline" [routerLink]="['/produkt', item.id]">
+              <a class="btn btn--outline" [routerLink]="['/product', item.id]">
                 Wróć do pełnej personalizacji
               </a>
             } @else {
-              <a class="btn btn--outline" [routerLink]="['/produkt', item.id, 'probka']">
+              <a class="btn btn--outline" [routerLink]="['/product', item.id, 'sample']">
                 Zamów próbki
               </a>
             }
-            <a class="btn btn--outline" routerLink="/kategoria/dodruk">Dodruk</a>
+            <a class="btn btn--outline" routerLink="/category/reprint">Dodruk</a>
           </div>
 
           <p class="product__short-description">{{ item.description }}</p>
@@ -42,7 +38,14 @@
           @if (item.full_description) {
             <button type="button" class="product__jump" (click)="scrollToDescription()">
               Przejdź do pełnego opisu
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
                 <path d="M12 5v14M5 12l7 7 7-7"></path>
               </svg>
             </button>
@@ -56,14 +59,17 @@
                 nadruku.
               </p>
               <ul>
-                <li>do {{ samplePricing.smallMaxQty }} szt. — {{ samplePricing.smallPrice | price }}</li>
+                <li>
+                  do {{ samplePricing.smallMaxQty }} szt. — {{ samplePricing.smallPrice | price }}
+                </li>
                 <li>
                   {{ samplePricing.smallMaxQty + 1 }}–{{ samplePricing.mediumMaxQty }} szt. —
                   {{ samplePricing.mediumPrice | price }}
                 </li>
                 <li>
                   powyżej {{ samplePricing.mediumMaxQty }} szt. —
-                  {{ samplePricing.mediumPrice | price }} + {{ samplePricing.extraPiecePrice | price }}
+                  {{ samplePricing.mediumPrice | price }} +
+                  {{ samplePricing.extraPiecePrice | price }}
                   za każdą kolejną sztukę
                 </li>
               </ul>
@@ -135,8 +141,8 @@
 
                   @if (showGuestListNote()) {
                     <p class="product__info-note">
-                      Listę gości (imiona i nazwiska do nadruku na kopertach) prześlesz nam
-                      w formularzu zamówienia lub e-mailem po jego złożeniu.
+                      Listę gości (imiona i nazwiska do nadruku na kopertach) prześlesz nam w
+                      formularzu zamówienia lub e-mailem po jego złożeniu.
                     </p>
                   }
                 }
@@ -151,30 +157,11 @@
               />
             }
 
-            @if (showPersonalisation()) {
-              <div class="product__personalisation">
-                <span class="product__option-label">Personalizacja zaproszenia</span>
-                @for (field of personalisationFields; track field.key) {
-                  <label class="product__field">
-                    <span class="product__field-label">{{ field.label }}</span>
-                    @if (field.multiline) {
-                      <textarea
-                        rows="3"
-                        [attr.maxlength]="field.maxLength"
-                        [value]="personalisation()[field.key] || ''"
-                        (input)="setPersonalisation(field.key, $any($event.target).value)"
-                      ></textarea>
-                    } @else {
-                      <input
-                        type="text"
-                        [attr.maxlength]="field.maxLength"
-                        [value]="personalisation()[field.key] || ''"
-                        (input)="setPersonalisation(field.key, $any($event.target).value)"
-                      />
-                    }
-                  </label>
-                }
-              </div>
+            @if (showPersonalisationNote()) {
+              <p class="product__info-note">
+                Dane do zaproszenia — imiona, datę, godzinę i miejsca — wpisujecie w jednym miejscu,
+                w formularzu przy składaniu zamówienia.
+              </p>
             }
           </div>
 
@@ -204,7 +191,11 @@
 
           <div class="product__buy">
             <div class="product__qty">
-              <button type="button" (click)="setQuantity(quantity() - 1)" aria-label="Zmniejsz ilość">
+              <button
+                type="button"
+                (click)="setQuantity(quantity() - 1)"
+                aria-label="Zmniejsz ilość"
+              >
                 −
               </button>
               <input
@@ -214,7 +205,11 @@
                 (change)="setQuantity(+$any($event.target).value)"
                 aria-label="Ilość sztuk"
               />
-              <button type="button" (click)="setQuantity(quantity() + 1)" aria-label="Zwiększ ilość">
+              <button
+                type="button"
+                (click)="setQuantity(quantity() + 1)"
+                aria-label="Zwiększ ilość"
+              >
                 +
               </button>
             </div>
@@ -245,7 +240,9 @@
           <div class="product__benefits">
             <ul>
               @for (tier of discountTiers; track tier.threshold) {
-                <li>Rabat {{ tier.rate * 100 }}% przy zamówieniu od {{ tier.threshold | price }}</li>
+                <li>
+                  Rabat {{ tier.rate * 100 }}% przy zamówieniu od {{ tier.threshold | price }}
+                </li>
               }
               <li>Darmowa dostawa od {{ freeShippingThreshold | price }}</li>
               <li>Personalizacja zaproszeń gratis</li>
