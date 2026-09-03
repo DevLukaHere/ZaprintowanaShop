@@ -54,6 +54,7 @@ const SHOWCASE_ENTRIES: readonly ShowcaseEntry[] = [
       'Karta menu porządkuje przyjęcie i domyka stylistykę zastawy. Mieścimy na niej pełny przebieg — od przystawek po tort i poprawiny — w układzie, który da się przeczytać przy świecach. Format dobieramy do wielkości stołu i liczby dań.',
     commands: ['/category', 'extras', 'menu'],
     match: { category: 'extras', subcategory: 'menu' },
+    image: 'showcase-menu.svg',
   },
   {
     title: 'Numery stołów',
@@ -61,6 +62,7 @@ const SHOWCASE_ENTRIES: readonly ShowcaseEntry[] = [
       'Numer stołu to pierwsza rzecz, której szuka gość po wejściu na salę. Drukujemy je w formacie widocznym z drugiego końca pomieszczenia, na sztywnym papierze lub dwustronnie do stojaka. Zamiast cyfr można użyć nazw — miast, piosenek, miejsc, które coś dla Was znaczą.',
     commands: ['/category', 'extras', 'table-numbers'],
     match: { category: 'extras', subcategory: 'table-numbers' },
+    image: 'showcase-table-numbers.svg',
   },
   {
     title: 'Podziękowania',
@@ -68,6 +70,7 @@ const SHOWCASE_ENTRIES: readonly ShowcaseEntry[] = [
       'Podziękowania dla gości, rodziców i świadków — krótka forma, w której liczy się treść i papier. Przygotowujemy je w komplecie z resztą papeterii, z miejscem na odręczny dopisek albo z gotowym tekstem, który wspólnie dopracujemy przed drukiem.',
     commands: ['/category', 'extras', 'thank-you-cards'],
     match: { category: 'extras', subcategory: 'thank-you-cards' },
+    image: 'showcase-thank-you.svg',
   },
 ];
 

@@ -171,6 +171,19 @@ export class AdminOrdersPage {
 
   protected async togglePaymentStatus(order: Order): Promise<void> {
     const next: PaymentStatus = order.payment_status === 'paid' ? 'unpaid' : 'paid';
+    const orderNumber = order.id.slice(0, 8);
+
+    // Oznaczenie jako opłacone wysyła klientowi maila z linkiem do formularza —
+    // to nieodwracalne w praktyce (mail już poszedł), więc pytamy przed kliknięciem.
+    const question =
+      next === 'paid'
+        ? `Oznaczyć zamówienie #${orderNumber} (${order.customer_name}) jako opłacone? Klient dostanie maila z linkiem do formularza z danymi do zaproszeń.`
+        : `Cofnąć płatność zamówienia #${orderNumber} (${order.customer_name}) na „nieopłacone”?`;
+
+    if (!confirm(question)) {
+      return;
+    }
+
     this.statusError.set(null);
     this.emailNotice.set(null);
     try {
