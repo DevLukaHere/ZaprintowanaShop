@@ -1,5 +1,5 @@
 /**
- * Wysyłka maili transakcyjnych do klienta.
+ * Wysyłka maili transakcyjnych do klienta i powiadomień do właściciela sklepu.
  *
  * Supabase nie ma wbudowanej wysyłki poczty dla własnych maili — ustawienia SMTP
  * w panelu obsługują wyłącznie maile autoryzacyjne (potwierdzenie konta, reset hasła).
@@ -10,29 +10,48 @@
  *   SITE_URL         — adres sklepu bez końcowego ukośnika                        [wymagane]
  *   RESEND_API_KEY   — klucz Resend; jeśli ustawiony, wysyłamy przez Resend
  *   SMTP_HOST/PORT/USER/PASSWORD — alternatywa dla Resend, zwykły SMTP
- *   MAIL_BCC         — opcjonalna kopia dla obsługi sklepu
+ *   MAIL_BCC         — opcjonalna kopia klienckiego maila dla obsługi sklepu
+ *   OWNER_EMAIL      — adres właściciela na powiadomienia o zamówieniach/płatnościach
+ *                       [opcjonalny, domyślnie zaprintowanasklep@gmail.com]
  *
  * Bez konfiguracji funkcja nie wywala błędu, tylko zwraca { sent: false, reason }.
  * Sklep działa dalej, a panel pokazuje link do formularza do wysłania ręcznie.
+ *
+ * Każde wywołanie wysyła mail do klienta ORAZ osobne powiadomienie do właściciela —
+ * to dwie różne, tematycznie odrębne wiadomości, nie kopia (BCC) tej samej treści.
  */
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 
 type EmailKind = 'order-placed' | 'payment-received';
+
+const DEFAULT_OWNER_EMAIL = 'zaprintowanasklep@gmail.com';
 
 interface RequestBody {
   orderId?: string;
   kind?: EmailKind;
 }
 
+interface OrderItemRow {
+  product_name: string;
+  quantity: number;
+  unit_price: number | null;
+}
+
 interface OrderRow {
   id: string;
+  created_at: string;
   customer_name: string;
   customer_email: string;
+  customer_phone: string | null;
+  shipping_address: string;
+  shipping_city: string;
+  shipping_postcode: string;
+  notes: string | null;
   payment_status: string;
   personalisation_token: string;
   order_placed_email_sent_at: string | null;
   payment_email_sent_at: string | null;
-  order_items: { product_name: string; quantity: number }[];
+  order_items: OrderItemRow[];
 }
 
 const SENT_AT_COLUMN: Record<EmailKind, keyof OrderRow> = {
@@ -60,6 +79,15 @@ function escapeHtml(value: string): string {
     .replace(/"/g, '&quot;');
 }
 
+function formatPrice(value: number): string {
+  const formatted = value % 1 === 0 ? value.toString() : value.toFixed(2).replace('.', ',');
+  return `${formatted} zł`;
+}
+
+function orderTotal(items: OrderItemRow[]): number {
+  return items.reduce((sum, item) => sum + item.quantity * (item.unit_price ?? 0), 0);
+}
+
 function layout(heading: string, bodyHtml: string): string {
   return `<!doctype html>
 <html lang="pl">
@@ -80,7 +108,7 @@ function layout(heading: string, bodyHtml: string): string {
 </html>`;
 }
 
-function itemsHtml(items: OrderRow['order_items']): string {
+function itemsHtml(items: OrderItemRow[]): string {
   if (!items?.length) {
     return '';
   }
@@ -91,6 +119,27 @@ function itemsHtml(items: OrderRow['order_items']): string {
     )
     .join('');
   return `<ul style="margin:0 0 20px;padding-left:18px;font-size:14px;line-height:1.6;">${rows}</ul>`;
+}
+
+/** Ta sama lista, ale z cenami i sumą — na potrzeby powiadomienia właściciela. */
+function ownerItemsHtml(items: OrderItemRow[]): string {
+  if (!items?.length) {
+    return '<p style="margin:0 0 16px;font-size:14px;color:#8a7b74;">Brak pozycji.</p>';
+  }
+  const rows = items
+    .map(
+      (item) => `
+        <tr>
+          <td style="padding:4px 0;font-size:14px;">${item.quantity} × ${escapeHtml(item.product_name)}</td>
+          <td style="padding:4px 0;font-size:14px;text-align:right;white-space:nowrap;">${formatPrice(item.quantity * (item.unit_price ?? 0))}</td>
+        </tr>`,
+    )
+    .join('');
+  return `
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 8px;border-top:1px solid #e8d5cd;border-bottom:1px solid #e8d5cd;">
+      ${rows}
+    </table>
+    <p style="margin:0 0 20px;font-size:15px;font-weight:600;text-align:right;">Razem: ${formatPrice(orderTotal(items))}</p>`;
 }
 
 function buildEmail(kind: EmailKind, order: OrderRow, siteUrl: string) {
@@ -122,6 +171,58 @@ function buildEmail(kind: EmailKind, order: OrderRow, siteUrl: string) {
        </p>
        <p style="margin:0 0 8px;font-size:13px;line-height:1.7;color:#8a7b74;">Gdyby przycisk nie działał, skopiujcie ten adres:</p>
        <p style="margin:0;font-size:13px;line-height:1.6;word-break:break-all;color:#b97e94;">${formUrl}</p>`,
+    ),
+  };
+}
+
+/** Powiadomienie do właściciela — inna treść niż mail do klienta, nie jego kopia. */
+function buildOwnerEmail(kind: EmailKind, order: OrderRow, siteUrl: string) {
+  const orderNumber = order.id.slice(0, 8);
+  const adminUrl = `${siteUrl}/admin`;
+  const customerName = escapeHtml(order.customer_name);
+  const phoneLine = order.customer_phone
+    ? `<a href="tel:${escapeHtml(order.customer_phone)}" style="color:#b97e94;">${escapeHtml(order.customer_phone)}</a>`
+    : '—';
+  const notesBlock = order.notes
+    ? `<p style="margin:0 0 16px;font-size:13px;line-height:1.6;color:#8a7b74;"><strong>Uwagi:</strong> ${escapeHtml(order.notes)}</p>`
+    : '';
+
+  const customerBlock = `
+    <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 20px;font-size:14px;line-height:1.8;">
+      <tr><td style="color:#8a7b74;padding-right:12px;vertical-align:top;">Klient</td><td>${customerName}</td></tr>
+      <tr><td style="color:#8a7b74;padding-right:12px;vertical-align:top;">E-mail</td><td><a href="mailto:${escapeHtml(order.customer_email)}" style="color:#b97e94;">${escapeHtml(order.customer_email)}</a></td></tr>
+      <tr><td style="color:#8a7b74;padding-right:12px;vertical-align:top;">Telefon</td><td>${phoneLine}</td></tr>
+      <tr><td style="color:#8a7b74;padding-right:12px;vertical-align:top;">Dostawa</td><td>${escapeHtml(order.shipping_address)}, ${escapeHtml(order.shipping_postcode)} ${escapeHtml(order.shipping_city)}</td></tr>
+    </table>`;
+
+  const ctaButton = `
+    <p style="margin:0;">
+      <a href="${adminUrl}" style="display:inline-block;background:#b97e94;color:#ffffff;text-decoration:none;padding:13px 28px;border-radius:2px;font-size:12px;font-weight:600;letter-spacing:2px;text-transform:uppercase;">Otwórz w panelu</a>
+    </p>`;
+
+  if (kind === 'order-placed') {
+    return {
+      subject: `Nowe zamówienie ${orderNumber} — ${order.customer_name}`,
+      html: layout(
+        'Nowe zamówienie',
+        `<p style="margin:0 0 20px;font-size:15px;line-height:1.7;">Wpłynęło zamówienie <strong>${orderNumber}</strong>, jeszcze nieopłacone.</p>
+         ${customerBlock}
+         ${ownerItemsHtml(order.order_items)}
+         ${notesBlock}
+         ${ctaButton}`,
+      ),
+    };
+  }
+
+  return {
+    subject: `Zamówienie ${orderNumber} opłacone — ${order.customer_name}`,
+    html: layout(
+      'Płatność zaksięgowana',
+      `<p style="margin:0 0 20px;font-size:15px;line-height:1.7;">Zamówienie <strong>${orderNumber}</strong> zostało opłacone. Klient dostał link do formularza z danymi do zaproszeń — dane pojawią się w panelu, gdy je uzupełni.</p>
+       ${customerBlock}
+       ${ownerItemsHtml(order.order_items)}
+       ${notesBlock}
+       ${ctaButton}`,
     ),
   };
 }
@@ -183,6 +284,17 @@ async function sendViaSmtp(payload: {
   }
 }
 
+async function send(
+  resendKey: string | undefined,
+  payload: { from: string; to: string; bcc?: string; subject: string; html: string },
+): Promise<void> {
+  if (resendKey) {
+    await sendViaResend(resendKey, payload);
+  } else {
+    await sendViaSmtp(payload);
+  }
+}
+
 Deno.serve(async (request) => {
   if (request.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
@@ -211,7 +323,7 @@ Deno.serve(async (request) => {
   const { data, error } = await supabase
     .from('orders')
     .select(
-      'id, customer_name, customer_email, payment_status, personalisation_token, order_placed_email_sent_at, payment_email_sent_at, order_items(product_name, quantity)',
+      'id, created_at, customer_name, customer_email, customer_phone, shipping_address, shipping_city, shipping_postcode, notes, payment_status, personalisation_token, order_placed_email_sent_at, payment_email_sent_at, order_items(product_name, quantity, unit_price)',
     )
     .eq('id', orderId)
     .maybeSingle();
@@ -226,7 +338,8 @@ Deno.serve(async (request) => {
   const order = data as unknown as OrderRow;
   const sentAtColumn = SENT_AT_COLUMN[kind];
 
-  // Mail wysyłamy raz — powtórne kliknięcie statusu w panelu nie zasypie klienta.
+  // Mail wysyłamy raz — powtórne kliknięcie statusu w panelu nie zasypie klienta
+  // (ani właściciela) powtórkami.
   if (order[sentAtColumn]) {
     return json({ sent: false, reason: 'already_sent' });
   }
@@ -238,6 +351,7 @@ Deno.serve(async (request) => {
   const siteUrl = (Deno.env.get('SITE_URL') ?? '').replace(/\/+$/, '');
   const resendKey = Deno.env.get('RESEND_API_KEY');
   const smtpHost = Deno.env.get('SMTP_HOST');
+  const ownerEmail = Deno.env.get('OWNER_EMAIL') || DEFAULT_OWNER_EMAIL;
 
   if (!from || !siteUrl) {
     return json({ sent: false, reason: 'missing_mail_config' });
@@ -247,24 +361,36 @@ Deno.serve(async (request) => {
   }
 
   const { subject, html } = buildEmail(kind, order, siteUrl);
-  const payload = {
-    from,
-    to: order.customer_email,
-    bcc: Deno.env.get('MAIL_BCC') || undefined,
-    subject,
-    html,
-  };
 
   try {
-    if (resendKey) {
-      await sendViaResend(resendKey, payload);
-    } else {
-      await sendViaSmtp(payload);
-    }
+    await send(resendKey, {
+      from,
+      to: order.customer_email,
+      bcc: Deno.env.get('MAIL_BCC') || undefined,
+      subject,
+      html,
+    });
   } catch (sendError) {
     const message = sendError instanceof Error ? sendError.message : String(sendError);
-    console.error(`[send-order-email] ${kind} ${orderId}: ${message}`);
+    console.error(`[send-order-email] ${kind} ${orderId} (klient): ${message}`);
     return json({ sent: false, reason: 'send_failed', message }, 502);
+  }
+
+  // Powiadomienie właściciela jest wysyłane best-effort — jego ewentualna awaria
+  // (np. literówka w OWNER_EMAIL) nie ma cofać maila, który klient już dostał.
+  let ownerNotified = false;
+  try {
+    const ownerEmailContent = buildOwnerEmail(kind, order, siteUrl);
+    await send(resendKey, {
+      from,
+      to: ownerEmail,
+      subject: ownerEmailContent.subject,
+      html: ownerEmailContent.html,
+    });
+    ownerNotified = true;
+  } catch (ownerError) {
+    const message = ownerError instanceof Error ? ownerError.message : String(ownerError);
+    console.error(`[send-order-email] ${kind} ${orderId} (właściciel, ${ownerEmail}): ${message}`);
   }
 
   await supabase
@@ -272,5 +398,5 @@ Deno.serve(async (request) => {
     .update({ [sentAtColumn]: new Date().toISOString() })
     .eq('id', order.id);
 
-  return json({ sent: true });
+  return json({ sent: true, ownerNotified });
 });

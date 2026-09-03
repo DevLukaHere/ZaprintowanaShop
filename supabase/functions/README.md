@@ -83,6 +83,7 @@ Dla portu 587 z STARTTLS ustaw dodatkowo `SMTP_TLS=false`.
 | Sekret | Znaczenie |
 | --- | --- |
 | `MAIL_BCC` | adres, na który idzie kopia każdego maila do klienta |
+| `OWNER_EMAIL` | adres na powiadomienia o zamówieniach/płatnościach — domyślnie `zaprintowanasklep@gmail.com`, ustaw tylko jeśli ma być inny |
 | `SMTP_TLS` | `false` dla portu 587 ze STARTTLS |
 
 `SUPABASE_URL` i `SUPABASE_SERVICE_ROLE_KEY` Supabase wstrzykuje sam — nie ustawiaj ich ręcznie.
@@ -95,14 +96,19 @@ npx supabase functions deploy send-order-email --project-ref pltuhiuemvjezrenoxc
 
 ## Co i kiedy wysyła
 
-| Zdarzenie | `kind` | Treść |
-| --- | --- | --- |
-| Klient składa zamówienie | `order-placed` | potwierdzenie przyjęcia, lista pozycji, zapowiedź formularza |
-| Panel zmienia płatność na „Opłacone” | `payment-received` | potwierdzenie płatności i prywatny link do formularza z danymi do zaproszeń |
+Każde zdarzenie wysyła **dwa** maile — do klienta i osobne powiadomienie do właściciela
+(`OWNER_EMAIL`). To dwie różne wiadomości, nie kopia (BCC) tej samej treści.
 
-Oba maile wychodzą raz — funkcja stempluje `orders.order_placed_email_sent_at`
-i `orders.payment_email_sent_at`, więc ponowne kliknięcie statusu w panelu nie
-zasypie klienta powtórkami.
+| Zdarzenie | `kind` | Klient dostaje | Właściciel dostaje |
+| --- | --- | --- | --- |
+| Klient składa zamówienie | `order-placed` | potwierdzenie przyjęcia, lista pozycji, zapowiedź formularza | dane klienta, adres dostawy, pozycje z cenami i sumą, link do panelu |
+| Panel zmienia płatność na „Opłacone” | `payment-received` | potwierdzenie płatności i prywatny link do formularza z danymi do zaproszeń | potwierdzenie wpłaty, te same dane zamówienia, link do panelu |
+
+Oba zdarzenia wychodzą raz — funkcja stempluje `orders.order_placed_email_sent_at`
+i `orders.payment_email_sent_at` dopiero po udanej wysyłce **do klienta**, więc ponowne
+kliknięcie statusu w panelu nie zasypie klienta powtórkami. Mail do właściciela jest
+wysyłany best-effort: jego ewentualna awaria (np. literówka w `OWNER_EMAIL`) nie cofa
+maila, który klient już dostał — jest tylko logowana w logach funkcji.
 
 ## Kiedy poczta nie jest skonfigurowana
 
