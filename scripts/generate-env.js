@@ -11,10 +11,15 @@ if (missing.length) {
   process.exit(1);
 }
 
+// Blokada na czas developmentu. Domyślnie WŁĄCZONA — brak zmiennej w .env nie może
+// przypadkiem otworzyć sklepu światu. Otwarcie jest świadomą decyzją: SITE_LOCKED=false.
+const siteLocked = (process.env.SITE_LOCKED ?? 'true').toLowerCase() !== 'false';
+
 const template = (production) => `export const environment = {
   production: ${production},
   supabaseUrl: '${process.env.SUPABASE_URL}',
   supabaseAnonKey: '${process.env.SUPABASE_ANON_KEY}',
+  siteLocked: ${siteLocked},
 };
 `;
 
@@ -24,4 +29,8 @@ fs.writeFileSync(path.join(outDir, 'environment.ts'), template(false));
 fs.writeFileSync(path.join(outDir, 'environment.development.ts'), template(false));
 fs.writeFileSync(path.join(outDir, 'environment.prod.ts'), template(true));
 
-console.log('[generate-env] Wygenerowano pliki src/environments z .env');
+console.log(
+  `[generate-env] Wygenerowano pliki src/environments z .env (blokada strony: ${
+    siteLocked ? 'WŁĄCZONA' : 'wyłączona'
+  })`,
+);

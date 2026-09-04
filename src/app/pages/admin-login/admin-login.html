@@ -5,6 +5,13 @@
       <span class="admin-login__subtitle">Panel administracyjny</span>
     </div>
 
+    @if (lockedNotice) {
+      <p class="admin-login__locked">
+        Sklep jest jeszcze w przygotowaniu i dostęp do niego mają wyłącznie osoby zalogowane.
+        Zaloguj się, żeby przejść dalej.
+      </p>
+    }
+
     <label class="field">
       <span class="field__label">E-mail</span>
       <input type="email" formControlName="email" autocomplete="username" />
@@ -23,6 +30,8 @@
       {{ submitting() ? 'Logowanie…' : 'Zaloguj się' }}
     </button>
 
-    <a class="admin-login__back" routerLink="/">← Wróć do sklepu</a>
+    @if (!siteLocked) {
+      <a class="admin-login__back" routerLink="/">← Wróć do sklepu</a>
+    }
   </form>
 </main>

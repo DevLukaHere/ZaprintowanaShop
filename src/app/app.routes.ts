@@ -1,11 +1,17 @@
 import { Routes } from '@angular/router';
 import { HomePage } from './pages/home/home';
 import { adminGuard } from './guards/admin.guard';
+import { siteLockGuard } from './guards/site-lock.guard';
 
 const catalog = () => import('./pages/catalog/catalog').then((m) => m.CatalogPage);
 const product = () => import('./pages/product/product').then((m) => m.ProductPage);
 
-export const routes: Routes = [
+/**
+ * Trasy sklepu. Na czas developmentu wszystkie chowa `siteLockGuard` — dokładanie
+ * go ręcznie do każdej z osobna kończyłoby się prędzej czy później przeoczeniem
+ * przy dopisywaniu nowej strony, więc nakładamy go niżej jednym mapowaniem.
+ */
+const publicRoutes: Routes = [
   { path: '', component: HomePage, title: 'Zaprintowana - serio fajne kartki' },
   {
     path: 'checkout',
@@ -59,6 +65,10 @@ export const routes: Routes = [
     data: { mode: 'sample' },
     loadComponent: product,
   },
+];
+
+/** Panel administracyjny — chroniony niezależnie od blokady developerskiej. */
+const adminRoutes: Routes = [
   {
     path: 'admin/login',
     title: 'Panel — logowanie',
@@ -91,5 +101,13 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./pages/admin-shipping/admin-shipping').then((m) => m.AdminShippingPage),
   },
+];
+
+export const routes: Routes = [
+  ...publicRoutes.map((route) => ({
+    ...route,
+    canActivate: [siteLockGuard, ...(route.canActivate ?? [])],
+  })),
+  ...adminRoutes,
   { path: '**', redirectTo: '' },
 ];

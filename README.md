@@ -82,3 +82,29 @@ pobiera się z tej samej tabeli co koszyk, więc nie da się go rozjechać.
 Koszt dostawy i wysokość rabatu wylicza baza w funkcji `create_order` — przeglądarka przysyła
 tylko kod metody i kod kuponu. Zamówienie zapamiętuje nazwę i cenę metody z chwili zakupu, więc
 późniejsza zmiana cennika nie przepisuje historii.
+
+## Blokada sklepu na czas developmentu
+
+Dopóki `SITE_LOCKED` jest włączone, **każda** strona sklepu wymaga zalogowania na konto
+administratora — wejście na dowolny adres odsyła do `/admin/login`, a po zalogowaniu
+wraca tam, dokąd się szło. Blokadę nakłada [`siteLockGuard`](src/app/guards/site-lock.guard.ts),
+dopinany do wszystkich tras publicznych jednym mapowaniem w [`app.routes.ts`](src/app/app.routes.ts),
+więc nowa strona jest chroniona automatycznie — nie da się o niej zapomnieć.
+
+Domyślnie blokada jest **włączona**: brak `SITE_LOCKED` w `.env` traktujemy jak `true`,
+żeby zapomniana zmienna nie otworzyła sklepu światu. Dodatkowo, dopóki trwa, aplikacja
+dokłada `<meta name="robots" content="noindex, nofollow">`.
+
+Otwarcie sklepu — jedna linijka w `.env`, bez zmian w kodzie:
+
+```
+SITE_LOCKED=false
+```
+
+Potem `npm run build` (albo `npm run deploy`) — `generate-env` wypisuje w konsoli, w którym
+trybie zbudował aplikację.
+
+Uwaga: blokada zatrzymuje przypadkowego gościa, ale nie jest zabezpieczeniem danych.
+Aplikacja jest statyczna, więc jej kod pobierze każdy, kto zna adres. Zamówień i wiadomości
+pilnują reguły RLS w bazie, a nie ten guard. Blokada obejmuje też formularz `/order/:token` —
+jeśli przed startem trzeba wysłać ten link prawdziwemu klientowi, najpierw wyłącz `SITE_LOCKED`.
