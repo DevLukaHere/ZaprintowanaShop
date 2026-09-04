@@ -1,0 +1,178 @@
+<main class="page">
+  <app-navbar />
+
+  <section class="legal">
+    <p class="eyebrow">Dokumenty</p>
+    <h1 class="section-title">RODO — klauzula informacyjna</h1>
+    <p class="legal__lead">
+      Formalna informacja wymagana przez art. 13 RODO: kto przetwarza Wasze dane, w jakim celu, na
+      jakiej podstawie i jak długo. Jeśli szukacie krótszego opisu, zajrzyjcie do
+      <a routerLink="/privacy-policy">Polityki prywatności</a> — mówi to samo prostszym językiem.
+    </p>
+    <span class="legal__updated">Aktualizacja: {{ updatedAt }}</span>
+
+    @if (hasPlaceholders) {
+      <p class="legal__placeholder-warning" role="alert">
+        <strong>Dokument wymaga uzupełnienia.</strong> Uzupełnij dane administratora w pliku
+        <code>src/app/models/legal.ts</code> — brakuje pól: <code>{{ placeholderFields }}</code
+        >.
+      </p>
+    }
+
+    <article class="legal__section" id="administrator">
+      <h2 class="legal__section-title">1. Administrator danych</h2>
+      <p>
+        Administratorem Waszych danych osobowych — w rozumieniu art. 4 pkt 7 rozporządzenia
+        Parlamentu Europejskiego i Rady (UE) 2016/679 z 27 kwietnia 2016 r. (RODO) — jest:
+      </p>
+      <div class="legal__card">
+        <dl>
+          <dt>Administrator</dt>
+          <dd>{{ seller.name }}, prowadzący sprzedaż pod nazwą {{ seller.tradeName }}</dd>
+          <dt>Forma działalności</dt>
+          <dd>działalność nierejestrowana (art. 5 ustawy Prawo przedsiębiorców)</dd>
+          <dt>Adres</dt>
+          <dd>{{ sellerAddress }}</dd>
+          <dt>Kontakt</dt>
+          <dd>
+            <a [href]="'mailto:' + seller.email">{{ seller.email }}</a
+            >, {{ seller.phone }}
+          </dd>
+          <dt>Inspektor ochrony danych</dt>
+          <dd>nie wyznaczono — brak takiego obowiązku (art. 37 RODO)</dd>
+        </dl>
+      </div>
+    </article>
+
+    <article class="legal__section" id="klauzule">
+      <h2 class="legal__section-title">2. Cele i podstawy przetwarzania</h2>
+      <p>Sklep zbiera dane w czterech miejscach. Dla każdego z nich obowiązuje osobna klauzula:</p>
+
+      @for (point of collectionPoints; track point.title) {
+        <div class="legal__card">
+          <h3 class="legal__card-title">{{ point.title }}</h3>
+          <dl>
+            <dt>Gdzie</dt>
+            <dd>{{ point.where }}</dd>
+            <dt>Zakres danych</dt>
+            <dd>{{ point.data }}</dd>
+            <dt>Cel</dt>
+            <dd>{{ point.purpose }}</dd>
+            <dt>Podstawa prawna</dt>
+            <dd>{{ point.basis }}</dd>
+            <dt>Czy trzeba je podać</dt>
+            <dd>{{ point.required }}</dd>
+            <dt>Okres przechowywania</dt>
+            <dd>{{ point.period }}</dd>
+          </dl>
+        </div>
+      }
+    </article>
+
+    <article class="legal__section" id="odbiorcy">
+      <h2 class="legal__section-title">3. Odbiorcy danych</h2>
+      <p>
+        Odbiorcami danych są podmioty przetwarzające je na nasze zlecenie: dostawca bazy danych i
+        uwierzytelniania (Supabase), hosting strony (GitHub Pages), dostawca poczty transakcyjnej,
+        wybrany przez Was przewoźnik oraz bank prowadzący rachunek. Pełna lista z rolami i
+        lokalizacjami znajduje się w
+        <a routerLink="/privacy-policy">Polityce prywatności</a>.
+      </p>
+      <p>
+        Dane mogą zostać udostępnione organom publicznym, jeżeli wystąpią o nie na podstawie
+        przepisów prawa. Nie sprzedajemy danych i nie przekazujemy ich do celów marketingowych.
+      </p>
+    </article>
+
+    <article class="legal__section" id="eog">
+      <h2 class="legal__section-title">4. Przekazywanie poza EOG</h2>
+      <p>
+        Baza danych sklepu działa na serwerach w Unii Europejskiej. Część usług pomocniczych —
+        hosting plików strony i wysyłka poczty — może przetwarzać dane w Stanach Zjednoczonych. W
+        takim przypadku przekazanie opiera się na standardowych klauzulach umownych zatwierdzonych
+        przez Komisję Europejską (art. 46 ust. 2 lit. c RODO). Kopię zabezpieczeń można uzyskać,
+        pisząc na {{ seller.email }}.
+      </p>
+    </article>
+
+    <article class="legal__section" id="prawa">
+      <h2 class="legal__section-title">5. Wasze prawa</h2>
+      <div class="legal__table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Prawo</th>
+              <th>Podstawa</th>
+              <th>Co oznacza w praktyce</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (right of rights; track right.name) {
+              <tr>
+                <td>{{ right.name }}</td>
+                <td>{{ right.article }}</td>
+                <td>{{ right.description }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      <div class="legal__highlight">
+        <p>
+          <strong>Jak z nich skorzystać:</strong> wystarczy e-mail na
+          <a [href]="'mailto:' + seller.email">{{ seller.email }}</a> z opisem żądania. Nie wymagamy
+          żadnego formularza. Odpowiadamy bez zbędnej zwłoki, najpóźniej w ciągu miesiąca od
+          otrzymania żądania; w skomplikowanych sprawach termin może się wydłużyć o kolejne dwa
+          miesiące, o czym poinformujemy. Realizacja praw jest bezpłatna.
+        </p>
+      </div>
+    </article>
+
+    <article class="legal__section" id="profilowanie">
+      <h2 class="legal__section-title">6. Profilowanie i decyzje automatyczne</h2>
+      <p>
+        Nie profilujemy Klientów i nie podejmujemy wobec nich decyzji opartych wyłącznie na
+        zautomatyzowanym przetwarzaniu, o których mowa w art. 22 RODO. Sklep nie korzysta z narzędzi
+        analitycznych ani reklamowych.
+      </p>
+    </article>
+
+    <article class="legal__section" id="dane-osob-trzecich">
+      <h2 class="legal__section-title">7. Dane osób trzecich</h2>
+      <p>
+        Przesyłając nam listę gości albo treści z danymi innych osób, przekazujecie dane, których
+        nie zbieraliśmy bezpośrednio od tych osób. Wykorzystujemy je wyłącznie do wykonania Waszego
+        zamówienia, nie przekazujemy dalej i usuwamy razem z pozostałymi danymi zamówienia. Podstawą
+        jest nasz prawnie uzasadniony interes polegający na wykonaniu umowy zawartej z Wami (art. 6
+        ust. 1 lit. f RODO), a informacja o przetwarzaniu — którą realizuje ta strona — odpowiada
+        wymogom art. 14 RODO.
+      </p>
+    </article>
+
+    <article class="legal__section" id="skarga">
+      <h2 class="legal__section-title">8. Skarga do organu nadzorczego</h2>
+      <p>
+        Jeżeli uważacie, że przetwarzamy dane niezgodnie z prawem, możecie wnieść skargę do organu
+        nadzorczego:
+      </p>
+      <div class="legal__card">
+        <dl>
+          <dt>Organ</dt>
+          <dd>Prezes Urzędu Ochrony Danych Osobowych</dd>
+          <dt>Adres</dt>
+          <dd>ul. Stawki 2, 00-193 Warszawa</dd>
+          <dt>Strona</dt>
+          <dd><a href="https://uodo.gov.pl" target="_blank" rel="noopener">uodo.gov.pl</a></dd>
+        </dl>
+      </div>
+    </article>
+
+    <p class="legal__footer-note">
+      Wszystkie sprawy dotyczące danych osobowych załatwiamy mailowo:
+      <a [href]="'mailto:' + seller.email">{{ seller.email }}</a
+      >.
+    </p>
+  </section>
+
+  <app-footer />
+</main>

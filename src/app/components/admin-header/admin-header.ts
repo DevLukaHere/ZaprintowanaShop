@@ -2,7 +2,7 @@ import { Component, inject, input } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 
-export type AdminTab = 'orders' | 'products' | 'messages';
+export type AdminTab = 'orders' | 'products' | 'messages' | 'shipping';
 
 @Component({
   selector: 'app-admin-header',

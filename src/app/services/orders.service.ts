@@ -3,6 +3,7 @@ import { OrderMode } from '../core/pricing';
 import { supabase } from '../core/supabase-client';
 import { CheckoutDetails, Order, OrderStatus, PaymentStatus } from '../models/order';
 import { ProductConfiguration } from '../models/product-options';
+import { PaymentMethod } from '../models/shipping';
 
 export interface OrderLineInput {
   productId: string;
@@ -12,12 +13,41 @@ export interface OrderLineInput {
   configuration: ProductConfiguration;
 }
 
+/** Wybory z drugiej części formularza zamówienia: dostawa, płatność, kupon, zgody. */
+export interface OrderCheckoutOptions {
+  shippingMethodCode: string;
+  paymentMethod: PaymentMethod;
+  shippingPoint: string | null;
+  couponCode: string | null;
+  /** Wartość produktów, od której baza liczy rabat i próg darmowej dostawy. */
+  itemsSubtotal: number;
+  termsAccepted: boolean;
+  withdrawalWaiver: boolean;
+}
+
 /** Maile transakcyjne wysyła Edge Function `send-order-email`. */
 export type OrderEmailKind = 'order-placed' | 'payment-received';
 
 export interface OrderEmailResult {
   sent: boolean;
   reason?: string;
+}
+
+/** Baza mówi po angielsku i technicznie — klientowi pokazujemy zdanie po polsku. */
+function translateOrderError(message: string): string {
+  if (message.includes('Coupon rejected')) {
+    return 'Kod rabatowy przestał być ważny w trakcie składania zamówienia. Usuń go i spróbuj ponownie.';
+  }
+  if (message.includes('requires a pickup point')) {
+    return 'Wybrana metoda dostawy wymaga wskazania punktu odbioru.';
+  }
+  if (message.includes('Cash on delivery')) {
+    return 'Dla tej metody dostawy pobranie jest niedostępne.';
+  }
+  if (message.includes('Unknown shipping method')) {
+    return 'Wybrana metoda dostawy jest już niedostępna. Wybierz inną.';
+  }
+  return message;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -43,7 +73,15 @@ export class OrdersService {
     this.ordersResource.reload();
   }
 
-  async createOrder(details: CheckoutDetails, items: readonly OrderLineInput[]): Promise<string> {
+  /**
+   * Koszt dostawy i wysokość rabatu wylicza baza — z tabeli metod i z kuponu.
+   * Stąd przekazujemy sam kod metody i kod kuponu, a nie kwoty.
+   */
+  async createOrder(
+    details: CheckoutDetails,
+    items: readonly OrderLineInput[],
+    options: OrderCheckoutOptions,
+  ): Promise<string> {
     const { data, error } = await supabase.rpc('create_order', {
       p_customer_name: details.customerName,
       p_customer_email: details.customerEmail,
@@ -59,10 +97,17 @@ export class OrdersService {
         mode: item.mode,
         configuration: item.configuration,
       })),
+      p_shipping_method_code: options.shippingMethodCode,
+      p_payment_method: options.paymentMethod,
+      p_shipping_point: options.shippingPoint,
+      p_coupon_code: options.couponCode,
+      p_items_subtotal: options.itemsSubtotal,
+      p_terms_accepted: options.termsAccepted,
+      p_withdrawal_waiver: options.withdrawalWaiver,
     });
 
     if (error) {
-      throw new Error(error.message);
+      throw new Error(translateOrderError(error.message));
     }
     return data as string;
   }

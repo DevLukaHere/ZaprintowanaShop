@@ -30,6 +30,13 @@
     >
       Wiadomości
     </a>
+    <a
+      class="admin-header__tab"
+      [class.admin-header__tab--active]="active() === 'shipping'"
+      routerLink="/admin/shipping"
+    >
+      Dostawa i kupony
+    </a>
   </nav>
 
   <div class="admin-header__account">

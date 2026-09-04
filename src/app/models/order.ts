@@ -1,4 +1,5 @@
 import { ProductConfiguration } from './product-options';
+import { PaymentMethod } from './shipping';
 
 export type OrderStatus = 'new' | 'in_progress' | 'done' | 'cancelled';
 
@@ -38,6 +39,19 @@ export interface Order {
   shipping_city: string;
   shipping_postcode: string;
   notes: string | null;
+  /** Metoda dostawy zapisana w chwili zakupu — nazwa nie zmienia się z cennikiem. */
+  shipping_method_code: string | null;
+  shipping_method_name: string | null;
+  shipping_cost: number;
+  shipping_point: string | null;
+  payment_method: PaymentMethod;
+  /** Wartość produktów po rabatach ilościowych, przed kuponem i dostawą. */
+  items_subtotal: number;
+  coupon_code: string | null;
+  discount_amount: number;
+  total_amount: number;
+  terms_accepted_at: string | null;
+  withdrawal_waiver_accepted_at: string | null;
   /** Dane uroczystości z formularza wypełnianego po opłaceniu — jeden komplet na zamówienie. */
   personalisation: Record<string, string> | null;
   personalisation_submitted_at: string | null;

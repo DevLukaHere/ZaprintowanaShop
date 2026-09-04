@@ -1,0 +1,358 @@
+<div class="admin">
+  <app-admin-header active="shipping" />
+
+  <main class="admin__content">
+    <!-- ------------------------------ Dostawa ------------------------------ -->
+    <section class="panel">
+      <div class="panel__head">
+        <div>
+          <h1 class="panel__title">Sposoby dostawy</h1>
+          <p class="panel__intro">
+            To, co klient widzi przy składaniu zamówienia. Wyłączona metoda znika ze sklepu, ale
+            zostaje w zamówieniach, w których ktoś ją już wybrał. Cena i nazwa zapisują się w
+            zamówieniu w chwili zakupu, więc późniejsza zmiana cennika nie przepisuje historii.
+          </p>
+        </div>
+        <button type="button" class="btn btn--primary" (click)="openMethodCreate()">
+          Dodaj metodę
+        </button>
+      </div>
+
+      @if (methodError(); as message) {
+        <p class="admin__error" role="alert">{{ message }}</p>
+      }
+
+      @if (showMethodForm()) {
+        <form class="panel__form" [formGroup]="methodForm" (ngSubmit)="saveMethod()" novalidate>
+          <div class="panel__grid">
+            <label class="field">
+              <span class="field__label">Nazwa *</span>
+              <input type="text" formControlName="name" placeholder="np. Paczkomat InPost 24/7" />
+            </label>
+
+            <label class="field">
+              <span class="field__label">Przewoźnik *</span>
+              <input type="text" formControlName="carrier" placeholder="np. InPost" />
+            </label>
+
+            <label class="field">
+              <span class="field__label">Identyfikator *</span>
+              <input type="text" formControlName="code" placeholder="np. inpost-locker" />
+              <span class="field__hint">Bez spacji i polskich znaków. Ustala się go raz.</span>
+            </label>
+
+            <label class="field">
+              <span class="field__label">Cena (zł) *</span>
+              <input type="number" step="0.01" min="0" formControlName="price" />
+            </label>
+
+            <label class="field">
+              <span class="field__label">Gratis od (zł)</span>
+              <input type="number" step="0.01" min="0" formControlName="freeFrom" />
+              <span class="field__hint">Puste = ta dostawa nigdy nie jest darmowa.</span>
+            </label>
+
+            <label class="field">
+              <span class="field__label">Dopłata za pobranie (zł)</span>
+              <input type="number" step="0.01" min="0" formControlName="codSurcharge" />
+              <span class="field__hint">Puste = pobranie niedostępne. 0 = bez dopłaty.</span>
+            </label>
+
+            <label class="field">
+              <span class="field__label">Czas dostawy</span>
+              <input type="text" formControlName="leadTime" placeholder="np. 1–2 dni robocze" />
+            </label>
+
+            <label class="field">
+              <span class="field__label">Kolejność</span>
+              <input type="number" step="10" formControlName="sortOrder" />
+            </label>
+          </div>
+
+          <label class="field">
+            <span class="field__label">Opis</span>
+            <input
+              type="text"
+              formControlName="description"
+              placeholder="Zdanie, które klient zobaczy pod nazwą"
+            />
+          </label>
+
+          <div class="panel__switches">
+            <label class="switch">
+              <input type="checkbox" formControlName="requiresPoint" />
+              <span>Wymaga wskazania punktu odbioru</span>
+            </label>
+            <label class="switch">
+              <input type="checkbox" formControlName="active" />
+              <span>Widoczna w sklepie</span>
+            </label>
+          </div>
+
+          @if (methodForm.controls.requiresPoint.value) {
+            <label class="field">
+              <span class="field__label">Podpowiedź przy polu punktu</span>
+              <input
+                type="text"
+                formControlName="pointHint"
+                placeholder="np. Podaj kod paczkomatu, np. WAW01A"
+              />
+            </label>
+          }
+
+          <div class="panel__form-actions">
+            <button type="submit" class="btn btn--primary" [disabled]="methodSubmitting()">
+              {{ methodSubmitting() ? 'Zapisywanie…' : 'Zapisz' }}
+            </button>
+            <button type="button" class="btn btn--outline" (click)="closeMethodForm()">
+              Anuluj
+            </button>
+          </div>
+        </form>
+      }
+
+      @if (shippingService.error(); as error) {
+        <p class="admin__error" role="alert">
+          Nie udało się pobrać metod dostawy: {{ error.message }}
+        </p>
+      } @else if (methods().length === 0) {
+        <p class="admin__placeholder">
+          {{ shippingService.isLoading() ? 'Ładowanie…' : 'Nie ma jeszcze żadnej metody dostawy.' }}
+        </p>
+      } @else {
+        <div class="admin__table-wrap">
+          <table class="admin__table">
+            <thead>
+              <tr>
+                <th>Metoda</th>
+                <th>Cena</th>
+                <th>Gratis od</th>
+                <th>Pobranie</th>
+                <th>Punkt odbioru</th>
+                <th>Widoczna</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (method of methods(); track method.id) {
+                <tr [class.row--off]="!method.active">
+                  <td>
+                    <span class="row__name">{{ method.name }}</span>
+                    <span class="row__muted">{{ method.carrier }} · {{ method.code }}</span>
+                    @if (method.lead_time) {
+                      <span class="row__muted">{{ method.lead_time }}</span>
+                    }
+                  </td>
+                  <td>{{ method.price | price }}</td>
+                  <td>
+                    {{ method.free_from === null ? '—' : (method.free_from | price) }}
+                  </td>
+                  <td>
+                    @if (method.cod_surcharge === null) {
+                      —
+                    } @else if (method.cod_surcharge === 0) {
+                      bez dopłaty
+                    } @else {
+                      +{{ method.cod_surcharge | price }}
+                    }
+                  </td>
+                  <td>{{ method.requires_point ? 'wymagany' : '—' }}</td>
+                  <td>
+                    <button
+                      type="button"
+                      class="pill"
+                      [class.pill--on]="method.active"
+                      (click)="toggleMethodActive(method)"
+                    >
+                      {{ method.active ? 'Tak' : 'Nie' }}
+                    </button>
+                  </td>
+                  <td class="row__actions">
+                    <button type="button" class="row__action" (click)="editMethod(method)">
+                      Edytuj
+                    </button>
+                    <button
+                      type="button"
+                      class="row__action row__action--danger"
+                      (click)="removeMethod(method)"
+                    >
+                      Usuń
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </section>
+
+    <!-- ------------------------------ Kupony ------------------------------- -->
+    <section class="panel">
+      <div class="panel__head">
+        <div>
+          <h2 class="panel__title">Kupony rabatowe</h2>
+          <p class="panel__intro">
+            Klient wpisuje kod w koszyku. Wysokość rabatu liczy baza, więc kodu nie da się podrobić
+            po stronie przeglądarki. Kod działa bez względu na wielkość liter.
+          </p>
+        </div>
+        <button type="button" class="btn btn--primary" (click)="openCouponCreate()">
+          Dodaj kupon
+        </button>
+      </div>
+
+      @if (couponError(); as message) {
+        <p class="admin__error" role="alert">{{ message }}</p>
+      }
+
+      @if (showCouponForm()) {
+        <form class="panel__form" [formGroup]="couponForm" (ngSubmit)="saveCoupon()" novalidate>
+          <div class="panel__grid">
+            <label class="field">
+              <span class="field__label">Kod *</span>
+              <input type="text" formControlName="code" placeholder="np. WIOSNA10" />
+            </label>
+
+            <label class="field">
+              <span class="field__label">Rodzaj *</span>
+              <select
+                formControlName="kind"
+                (change)="onCouponKindChange($any($event.target).value)"
+              >
+                @for (kind of couponKinds; track kind) {
+                  <option [value]="kind">{{ couponKindLabels[kind] }}</option>
+                }
+              </select>
+            </label>
+
+            @if (couponNeedsValue()) {
+              <label class="field">
+                <span class="field__label">Wysokość rabatu ({{ couponValueUnit() }}) *</span>
+                <input type="number" step="0.01" min="0" formControlName="value" />
+              </label>
+            }
+
+            <label class="field">
+              <span class="field__label">Minimalna wartość koszyka (zł)</span>
+              <input type="number" step="0.01" min="0" formControlName="minOrderValue" />
+            </label>
+
+            <label class="field">
+              <span class="field__label">Ważny od</span>
+              <input type="datetime-local" formControlName="startsAt" />
+            </label>
+
+            <label class="field">
+              <span class="field__label">Ważny do</span>
+              <input type="datetime-local" formControlName="expiresAt" />
+            </label>
+
+            <label class="field">
+              <span class="field__label">Limit użyć</span>
+              <input type="number" step="1" min="1" formControlName="maxUses" />
+              <span class="field__hint">Puste = bez limitu.</span>
+            </label>
+          </div>
+
+          <label class="field">
+            <span class="field__label">Opis (widoczny w koszyku)</span>
+            <input
+              type="text"
+              formControlName="description"
+              placeholder="np. Rabat wiosenny na zaproszenia"
+            />
+          </label>
+
+          <div class="panel__switches">
+            <label class="switch">
+              <input type="checkbox" formControlName="active" />
+              <span>Kupon włączony</span>
+            </label>
+          </div>
+
+          <div class="panel__form-actions">
+            <button type="submit" class="btn btn--primary" [disabled]="couponSubmitting()">
+              {{ couponSubmitting() ? 'Zapisywanie…' : 'Zapisz' }}
+            </button>
+            <button type="button" class="btn btn--outline" (click)="closeCouponForm()">
+              Anuluj
+            </button>
+          </div>
+        </form>
+      }
+
+      @if (couponsService.error(); as error) {
+        <p class="admin__error" role="alert">Nie udało się pobrać kuponów: {{ error.message }}</p>
+      } @else if (coupons().length === 0) {
+        <p class="admin__placeholder">
+          {{ couponsService.isLoading() ? 'Ładowanie…' : 'Nie ma jeszcze żadnego kuponu.' }}
+        </p>
+      } @else {
+        <div class="admin__table-wrap">
+          <table class="admin__table">
+            <thead>
+              <tr>
+                <th>Kod</th>
+                <th>Rabat</th>
+                <th>Od wartości</th>
+                <th>Ważność</th>
+                <th>Użycia</th>
+                <th>Stan</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (coupon of coupons(); track coupon.id) {
+                <tr [class.row--off]="!coupon.active">
+                  <td>
+                    <span class="row__code">{{ coupon.code }}</span>
+                    @if (coupon.description) {
+                      <span class="row__muted">{{ coupon.description }}</span>
+                    }
+                  </td>
+                  <td>{{ couponValueLabel(coupon) }}</td>
+                  <td>
+                    {{ coupon.min_order_value > 0 ? (coupon.min_order_value | price) : '—' }}
+                  </td>
+                  <td class="row__dates">
+                    @if (coupon.starts_at) {
+                      <span>od {{ coupon.starts_at | date: 'dd.MM.yyyy HH:mm' }}</span>
+                    }
+                    @if (coupon.expires_at) {
+                      <span>do {{ coupon.expires_at | date: 'dd.MM.yyyy HH:mm' }}</span>
+                    }
+                    @if (!coupon.starts_at && !coupon.expires_at) {
+                      bezterminowo
+                    }
+                  </td>
+                  <td>{{ couponUsage(coupon) }}</td>
+                  <td>
+                    <span class="status" [class]="'status--' + couponStatus(coupon).tone">
+                      {{ couponStatus(coupon).label }}
+                    </span>
+                  </td>
+                  <td class="row__actions">
+                    <button type="button" class="row__action" (click)="editCoupon(coupon)">
+                      Edytuj
+                    </button>
+                    <button type="button" class="row__action" (click)="toggleCouponActive(coupon)">
+                      {{ coupon.active ? 'Wyłącz' : 'Włącz' }}
+                    </button>
+                    <button
+                      type="button"
+                      class="row__action row__action--danger"
+                      (click)="removeCoupon(coupon)"
+                    >
+                      Usuń
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </section>
+  </main>
+</div>

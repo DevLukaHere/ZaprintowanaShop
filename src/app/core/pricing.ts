@@ -1,4 +1,5 @@
 import { Collection } from '../models/collection';
+import { AppliedCoupon } from '../models/coupon';
 import {
   BELOW_MIN_QUANTITY_FEE,
   EXPRESS_SURCHARGE_RATE,
@@ -7,6 +8,7 @@ import {
   discountRateFor,
   sampleOrderPrice,
 } from '../models/pricing';
+import { PaymentMethod, ShippingMethod, shippingCostFor } from '../models/shipping';
 import {
   ProductConfiguration,
   ProductOption,
@@ -44,10 +46,7 @@ function findOption(
   return id ? options?.find((option) => option.id === id) : undefined;
 }
 
-export function optionSurcharge(
-  product: Collection,
-  configuration: ProductConfiguration,
-): number {
+export function optionSurcharge(product: Collection, configuration: ProductConfiguration): number {
   const paper = findOption(product.paper_options, configuration.paperId);
   const foil = findOption(product.foil_options, configuration.foilId);
   const envelope = findOption(product.envelope_options, configuration.envelopeId);
@@ -99,5 +98,60 @@ export function cartTotals(lines: readonly PricedLine[]): CartTotals {
     total,
     freeShipping: subtotal >= FREE_SHIPPING_THRESHOLD,
     missingForFreeShipping: Math.max(0, FREE_SHIPPING_THRESHOLD - subtotal),
+  };
+}
+
+/** Kwoty zamówienia: koszyk + wybrana dostawa + kupon. */
+export interface OrderTotals {
+  /** Wartość produktów do zapłaty — po rabacie ilościowym i dopłacie za małe zamówienie. */
+  itemsSubtotal: number;
+  couponDiscount: number;
+  shippingCost: number;
+  /** Czy dostawa wyszła gratis (z progu w metodzie albo z kuponu). */
+  freeShipping: boolean;
+  /** Ile brakuje do progu darmowej dostawy w wybranej metodzie; 0 gdy progu nie ma. */
+  missingForFreeShipping: number;
+  total: number;
+}
+
+/**
+ * Rabat z kuponu liczony tak samo jak w bazie (funkcja `coupon_discount`) —
+ * baza i tak przelicza go przy składaniu zamówienia, tu chodzi o zgodne podsumowanie.
+ */
+export function couponDiscountFor(coupon: AppliedCoupon | null, itemsSubtotal: number): number {
+  if (!coupon) {
+    return 0;
+  }
+  switch (coupon.kind) {
+    case 'percent':
+      return Math.round(itemsSubtotal * coupon.value) / 100;
+    case 'amount':
+      return Math.min(coupon.value, itemsSubtotal);
+    case 'free_shipping':
+      return 0;
+  }
+}
+
+export function orderTotals(
+  cart: CartTotals,
+  method: ShippingMethod | undefined,
+  payment: PaymentMethod,
+  coupon: AppliedCoupon | null,
+): OrderTotals {
+  const itemsSubtotal = cart.total;
+  const couponDiscount = couponDiscountFor(coupon, itemsSubtotal);
+  const shippingCost = shippingCostFor(method, itemsSubtotal, payment, !!coupon?.freeShipping);
+
+  const threshold = method?.free_from ?? null;
+  const freeShipping = !!coupon?.freeShipping || (threshold !== null && itemsSubtotal >= threshold);
+
+  return {
+    itemsSubtotal,
+    couponDiscount,
+    shippingCost,
+    freeShipping,
+    missingForFreeShipping:
+      threshold === null || freeShipping ? 0 : Math.max(0, threshold - itemsSubtotal),
+    total: Math.max(0, itemsSubtotal - couponDiscount) + shippingCost,
   };
 }

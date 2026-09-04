@@ -14,6 +14,7 @@ import {
   PAYMENT_STATUS_LABELS,
   PaymentStatus,
 } from '../../models/order';
+import { PAYMENT_METHOD_LABELS } from '../../models/shipping';
 import { OrdersService } from '../../services/orders.service';
 
 const ALL_STATUSES: OrderStatus[] = ['new', 'in_progress', 'done', 'cancelled'];
@@ -37,6 +38,7 @@ export class AdminOrdersPage {
   protected readonly statusLabels = ORDER_STATUS_LABELS;
   protected readonly statuses = ALL_STATUSES;
   protected readonly paymentStatusLabels = PAYMENT_STATUS_LABELS;
+  protected readonly paymentMethodLabels = PAYMENT_METHOD_LABELS;
 
   protected readonly statusFilter = signal<OrderStatus | 'all'>('all');
   protected readonly paymentFilter = signal<PaymentStatus | 'all'>('all');
@@ -150,6 +152,11 @@ export class AdminOrdersPage {
     }
     const details = describeConfiguration(undefined, item.configuration);
     return details.length ? details : null;
+  }
+
+  /** Zamówienia sprzed wprowadzenia wyboru dostawy nie mają zapisanej metody. */
+  protected shippingLabel(order: Order): string {
+    return order.shipping_method_name ?? 'ustalona indywidualnie';
   }
 
   protected formatPrice(value: number): string {

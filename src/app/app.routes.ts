@@ -29,6 +29,22 @@ export const routes: Routes = [
     title: 'Kontakt — Zaprintowana',
     loadComponent: () => import('./pages/contact/contact').then((m) => m.ContactPage),
   },
+  {
+    path: 'terms',
+    title: 'Regulamin — Zaprintowana',
+    loadComponent: () => import('./pages/terms/terms').then((m) => m.TermsPage),
+  },
+  {
+    path: 'privacy-policy',
+    title: 'Polityka prywatności — Zaprintowana',
+    loadComponent: () =>
+      import('./pages/privacy-policy/privacy-policy').then((m) => m.PrivacyPolicyPage),
+  },
+  {
+    path: 'gdpr',
+    title: 'RODO — Zaprintowana',
+    loadComponent: () => import('./pages/gdpr/gdpr').then((m) => m.GdprPage),
+  },
   { path: 'shop', title: 'Wszystkie produkty — Zaprintowana', loadComponent: catalog },
   { path: 'category/:category', title: 'Kategoria — Zaprintowana', loadComponent: catalog },
   {
@@ -67,6 +83,13 @@ export const routes: Routes = [
     canActivate: [adminGuard],
     loadComponent: () =>
       import('./pages/admin-messages/admin-messages').then((m) => m.AdminMessagesPage),
+  },
+  {
+    path: 'admin/shipping',
+    title: 'Panel — dostawa i kupony',
+    canActivate: [adminGuard],
+    loadComponent: () =>
+      import('./pages/admin-shipping/admin-shipping').then((m) => m.AdminShippingPage),
   },
   { path: '**', redirectTo: '' },
 ];

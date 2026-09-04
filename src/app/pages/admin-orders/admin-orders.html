@@ -124,6 +124,7 @@
                   <span class="admin__sort-icon">{{ sortIndicator('shipping_city') }}</span>
                 </button>
               </th>
+              <th>Dostawa</th>
               <th>Produkty</th>
               <th>
                 <button type="button" class="admin__sort" (click)="toggleSort('payment_status')">
@@ -204,6 +205,17 @@
                   {{ order.shipping_postcode }} {{ order.shipping_city }}
                 </td>
 
+                <td class="admin__cell-shipping">
+                  <span class="admin__shipping-name">{{ shippingLabel(order) }}</span>
+                  <span class="admin__muted">
+                    {{ order.shipping_cost > 0 ? formatPrice(order.shipping_cost) : 'gratis' }}
+                    · {{ paymentMethodLabels[order.payment_method] }}
+                  </span>
+                  @if (order.shipping_point) {
+                    <span class="admin__shipping-point">Punkt: {{ order.shipping_point }}</span>
+                  }
+                </td>
+
                 <td>
                   <ul class="admin__items">
                     @for (item of order.order_items; track item.id) {
@@ -222,6 +234,16 @@
                     }
                   </ul>
                   <span class="admin__muted">Razem sztuk: {{ itemCount(order) }}</span>
+                  @if (order.coupon_code) {
+                    <span class="admin__coupon">
+                      Kupon {{ order.coupon_code }} · −{{ formatPrice(order.discount_amount) }}
+                    </span>
+                  }
+                  @if (order.total_amount > 0) {
+                    <span class="admin__order-total">
+                      Do zapłaty: {{ formatPrice(order.total_amount) }}
+                    </span>
+                  }
                 </td>
 
                 <td>

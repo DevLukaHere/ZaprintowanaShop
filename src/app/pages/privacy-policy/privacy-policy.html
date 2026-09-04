@@ -1,0 +1,282 @@
+<main class="page">
+  <app-navbar />
+
+  <section class="legal">
+    <p class="eyebrow">Dokumenty</p>
+    <h1 class="section-title">Polityka prywatności</h1>
+    <p class="legal__lead">
+      Zbieramy tylko te dane, bez których nie da się wydrukować i wysłać zamówienia. Nie prowadzimy
+      analityki, nie wyświetlamy reklam i nikomu nie sprzedajemy danych. Poniżej opisujemy, co
+      dokładnie się dzieje z Waszymi informacjami.
+    </p>
+    <span class="legal__updated">Aktualizacja: {{ updatedAt }}</span>
+
+    @if (hasPlaceholders) {
+      <p class="legal__placeholder-warning" role="alert">
+        <strong>Dokument wymaga uzupełnienia.</strong> Uzupełnij dane administratora w pliku
+        <code>src/app/models/legal.ts</code> — brakuje pól: <code>{{ placeholderFields }}</code
+        >.
+      </p>
+    }
+
+    <nav class="legal__toc" aria-label="Spis treści">
+      <h2>Spis treści</h2>
+      <ol>
+        <li><a href="#administrator">Kto odpowiada za Wasze dane</a></li>
+        <li><a href="#zakres">Jakie dane zbieramy</a></li>
+        <li><a href="#cele">Po co i na jakiej podstawie</a></li>
+        <li><a href="#odbiorcy">Komu je powierzamy</a></li>
+        <li><a href="#okres">Jak długo je trzymamy</a></li>
+        <li><a href="#prawa">Wasze prawa</a></li>
+        <li><a href="#pamiec">Ciasteczka i pamięć przeglądarki</a></li>
+        <li><a href="#bezpieczenstwo">Bezpieczeństwo</a></li>
+        <li><a href="#zmiany">Zmiany polityki</a></li>
+      </ol>
+    </nav>
+
+    <article class="legal__section" id="administrator">
+      <h2 class="legal__section-title">1. Kto odpowiada za Wasze dane</h2>
+      <p>
+        Administratorem danych osobowych jest {{ seller.name }}, prowadzący sprzedaż pod nazwą
+        {{ seller.tradeName }} w ramach działalności nierejestrowanej.
+      </p>
+      <div class="legal__card">
+        <dl>
+          <dt>Administrator</dt>
+          <dd>{{ seller.name }} ({{ seller.tradeName }})</dd>
+          <dt>Adres</dt>
+          <dd>{{ sellerAddress }}</dd>
+          <dt>Kontakt w sprawie danych</dt>
+          <dd>
+            <a [href]="'mailto:' + seller.email">{{ seller.email }}</a>
+          </dd>
+        </dl>
+      </div>
+      <p>
+        Nie wyznaczyliśmy inspektora ochrony danych — sklep jest na tyle mały, że nie ma takiego
+        obowiązku. We wszystkich sprawach dotyczących danych piszcie na adres powyżej.
+      </p>
+    </article>
+
+    <article class="legal__section" id="zakres">
+      <h2 class="legal__section-title">2. Jakie dane zbieramy</h2>
+      <ul>
+        <li>
+          <strong>Przy zamówieniu:</strong> imię i nazwisko, adres dostawy, e-mail, telefon
+          (opcjonalnie), punkt odbioru, treść uwag, wybrany sposób dostawy i płatności.
+        </li>
+        <li>
+          <strong>W formularzu z danymi do zaproszeń:</strong> imiona, data i godzina uroczystości,
+          adresy miejsc, treści dedykacji, a przy personalizacji kopert — lista gości.
+        </li>
+        <li>
+          <strong>W formularzu kontaktowym:</strong> imię i nazwisko, e-mail, telefon (opcjonalnie),
+          temat i treść wiadomości.
+        </li>
+        <li>
+          <strong>Automatycznie:</strong> adres IP i informacje o przeglądarce w logach serwerów
+          hostingowych — standardowy element działania każdej strony internetowej.
+        </li>
+      </ul>
+      <div class="legal__highlight">
+        <p>
+          Lista gości i dane uroczystości to często dane innych osób niż zamawiający. Wykorzystujemy
+          je wyłącznie do wydrukowania Waszego zamówienia, nie budujemy z nich żadnej bazy i usuwamy
+          je razem z resztą danych zamówienia.
+        </p>
+      </div>
+    </article>
+
+    <article class="legal__section" id="cele">
+      <h2 class="legal__section-title">3. Po co i na jakiej podstawie</h2>
+      <div class="legal__table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Cel</th>
+              <th>Podstawa prawna</th>
+              <th>Okres przechowywania</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Przyjęcie i realizacja zamówienia, kontakt w jego sprawie, wysyłka</td>
+              <td>art. 6 ust. 1 lit. b RODO — wykonanie umowy</td>
+              <td>czas realizacji, potem do przedawnienia roszczeń</td>
+            </tr>
+            <tr>
+              <td>Odpowiedź na wiadomość z formularza kontaktowego</td>
+              <td>art. 6 ust. 1 lit. f RODO — prawnie uzasadniony interes (obsługa zapytań)</td>
+              <td>do zakończenia sprawy, maksymalnie 12 miesięcy</td>
+            </tr>
+            <tr>
+              <td>Rozpatrzenie reklamacji lub odstąpienia od umowy</td>
+              <td>art. 6 ust. 1 lit. c RODO — obowiązek prawny</td>
+              <td>do końca okresu odpowiedzialności za zgodność towaru z umową</td>
+            </tr>
+            <tr>
+              <td>Rozliczenia i ewidencja sprzedaży</td>
+              <td>art. 6 ust. 1 lit. c RODO — obowiązki podatkowe</td>
+              <td>okres wymagany przepisami podatkowymi</td>
+            </tr>
+            <tr>
+              <td>Obrona przed roszczeniami i dochodzenie własnych</td>
+              <td>art. 6 ust. 1 lit. f RODO — prawnie uzasadniony interes</td>
+              <td>do przedawnienia roszczeń</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p>
+        Podanie danych jest dobrowolne, ale bez danych do wysyłki nie zrealizujemy zamówienia, a bez
+        adresu e-mail nie wyślemy projektu do akceptacji. Nie podejmujemy decyzji w sposób
+        zautomatyzowany i nie profilujemy Klientów.
+      </p>
+    </article>
+
+    <article class="legal__section" id="odbiorcy">
+      <h2 class="legal__section-title">4. Komu je powierzamy</h2>
+      <p>
+        Danych nie sprzedajemy i nie udostępniamy do celów marketingowych. Dostęp mają wyłącznie
+        podmioty, bez których sklep by nie działał:
+      </p>
+      <div class="legal__table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Podmiot</th>
+              <th>Rola</th>
+              <th>Lokalizacja</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (processor of processors; track processor.name) {
+              <tr>
+                <td>{{ processor.name }}</td>
+                <td>{{ processor.role }}</td>
+                <td>{{ processor.location }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      <p>
+        Dane mogą też trafić do organów publicznych, jeśli wystąpią o nie na podstawie przepisów
+        prawa. Tam, gdzie dane trafiają poza Europejski Obszar Gospodarczy, opiera się to na
+        standardowych klauzulach umownych zatwierdzonych przez Komisję Europejską.
+      </p>
+    </article>
+
+    <article class="legal__section" id="okres">
+      <h2 class="legal__section-title">5. Jak długo je trzymamy</h2>
+      <ol>
+        <li>
+          Dane zamówienia — przez czas realizacji, a potem przez okres przedawnienia roszczeń oraz
+          okres wymagany przepisami podatkowymi.
+        </li>
+        <li>
+          Treści do zaproszeń i listy gości — usuwamy po zakończeniu zamówienia i upływie czasu na
+          ewentualny dodruk, nie później niż po 12 miesiącach od wysyłki.
+        </li>
+        <li>
+          Wiadomości z formularza kontaktowego — do zakończenia sprawy, maksymalnie 12 miesięcy.
+        </li>
+        <li>
+          Pliki projektowe zachowujemy, żeby umożliwić Wam dodruk — możecie w każdej chwili poprosić
+          o ich wcześniejsze usunięcie.
+        </li>
+      </ol>
+    </article>
+
+    <article class="legal__section" id="prawa">
+      <h2 class="legal__section-title">6. Wasze prawa</h2>
+      <p>
+        Przysługuje Wam prawo dostępu do danych, ich sprostowania, usunięcia, ograniczenia
+        przetwarzania, przenoszenia oraz sprzeciwu wobec przetwarzania opartego na prawnie
+        uzasadnionym interesie. Szczegóły — z terminami i sposobem realizacji — opisuje
+        <a routerLink="/gdpr">klauzula informacyjna RODO</a>.
+      </p>
+      <p>
+        Każde z tych praw realizujecie jednym e-mailem na
+        <a [href]="'mailto:' + seller.email">{{ seller.email }}</a
+        >. Odpowiadamy w ciągu miesiąca. Jeśli uznacie, że przetwarzamy dane niezgodnie z prawem,
+        możecie złożyć skargę do Prezesa Urzędu Ochrony Danych Osobowych (ul. Stawki 2, 00-193
+        Warszawa, <a href="https://uodo.gov.pl" target="_blank" rel="noopener">uodo.gov.pl</a>).
+      </p>
+    </article>
+
+    <article class="legal__section" id="pamiec">
+      <h2 class="legal__section-title">7. Ciasteczka i pamięć przeglądarki</h2>
+      <p>
+        Sklep nie korzysta z ciasteczek analitycznych ani reklamowych — nie ma tu Google Analytics,
+        piksela Facebooka ani żadnego innego narzędzia śledzącego. Dlatego nie prosimy o zgodę na
+        ciasteczka: to, co zapisujemy, jest niezbędne do wykonania usługi, o którą sami prosicie
+        (koszyk), a taki zapis mieści się w wyjątku przewidzianym w art. 398 ustawy Prawo
+        komunikacji elektronicznej.
+      </p>
+      <div class="legal__table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Zapis</th>
+              <th>Do czego służy</th>
+              <th>Jak długo</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (entry of storageEntries; track entry.key) {
+              <tr>
+                <td>
+                  <code>{{ entry.key }}</code>
+                </td>
+                <td>{{ entry.purpose }}</td>
+                <td>{{ entry.lifetime }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      <p>
+        Wszystkie te dane leżą wyłącznie w Waszej przeglądarce i nie trafiają na nasz serwer.
+        Możecie je skasować w ustawieniach przeglądarki — zniknie wtedy koszyk i lista ulubionych.
+      </p>
+      <p>
+        Odnośniki do naszych profili na Facebooku, Instagramie i TikToku to zwykłe linki. Nie
+        osadzamy wtyczek tych serwisów, więc dopóki nie klikniecie, nie dowiadują się one o Waszej
+        wizycie.
+      </p>
+    </article>
+
+    <article class="legal__section" id="bezpieczenstwo">
+      <h2 class="legal__section-title">8. Bezpieczeństwo</h2>
+      <ul>
+        <li>Połączenie ze sklepem jest szyfrowane (HTTPS).</li>
+        <li>
+          Dostęp do bazy chronią reguły uprawnień po stronie serwera — dane zamówień widzi wyłącznie
+          zalogowany sprzedawca.
+        </li>
+        <li>
+          Link do formularza z danymi do zaproszeń zawiera losowy, jednorazowy identyfikator i nie
+          da się go odgadnąć. Nie przekazujcie go dalej.
+        </li>
+        <li>Do panelu administracyjnego loguje się wyłącznie sprzedawca, na osobne konto.</li>
+      </ul>
+    </article>
+
+    <article class="legal__section" id="zmiany">
+      <h2 class="legal__section-title">9. Zmiany polityki</h2>
+      <p>
+        Politykę aktualizujemy, gdy zmienia się sposób działania sklepu — na przykład gdy dochodzi
+        nowy sposób płatności albo przewoźnik. Nowa wersja pojawia się na tej stronie razem z datą
+        aktualizacji.
+      </p>
+    </article>
+
+    <p class="legal__footer-note">
+      Pytania o dane? <a routerLink="/contact">Napiszcie do nas</a> albo prosto na
+      {{ seller.email }}.
+    </p>
+  </section>
+
+  <app-footer />
+</main>

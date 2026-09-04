@@ -1,0 +1,509 @@
+<main class="page">
+  <app-navbar />
+
+  <section class="legal">
+    <p class="eyebrow">Dokumenty</p>
+    <h1 class="section-title">Regulamin sklepu</h1>
+    <p class="legal__lead">
+      Regulamin określa zasady sprzedaży w sklepie {{ seller.domain }}: jak składacie zamówienie,
+      kiedy dochodzi do zawarcia umowy, ile trwa realizacja, jak reklamować zamówienie i kiedy
+      przysługuje zwrot.
+    </p>
+    <span class="legal__updated">Obowiązuje od {{ updatedAt }}</span>
+
+    @if (hasPlaceholders) {
+      <p class="legal__placeholder-warning" role="alert">
+        <strong>Dokument wymaga uzupełnienia.</strong> Zanim sklep ruszy publicznie, uzupełnij dane
+        sprzedawcy w pliku <code>src/app/models/legal.ts</code> — brakuje pól:
+        <code>{{ placeholderFields }}</code
+        >. Bez nich regulamin nie spełnia obowiązku informacyjnego z art. 12 ustawy o prawach
+        konsumenta.
+      </p>
+    }
+
+    <nav class="legal__toc" aria-label="Spis treści">
+      <h2>Spis treści</h2>
+      <ol>
+        <li><a href="#postanowienia">Postanowienia ogólne</a></li>
+        <li><a href="#definicje">Definicje</a></li>
+        <li><a href="#sprzedawca">Sprzedawca i kontakt</a></li>
+        <li><a href="#wymagania">Wymagania techniczne</a></li>
+        <li><a href="#produkty">Produkty, ceny i personalizacja</a></li>
+        <li><a href="#zamowienie">Zamówienie i zawarcie umowy</a></li>
+        <li><a href="#platnosci">Płatności</a></li>
+        <li><a href="#dostawa">Dostawa i jej koszty</a></li>
+        <li><a href="#realizacja">Realizacja zamówienia</a></li>
+        <li><a href="#odstapienie">Prawo odstąpienia od umowy</a></li>
+        <li><a href="#reklamacje">Reklamacje</a></li>
+        <li><a href="#spory">Pozasądowe rozwiązywanie sporów</a></li>
+        <li><a href="#prawa-autorskie">Prawa autorskie</a></li>
+        <li><a href="#dane">Dane osobowe</a></li>
+        <li><a href="#koncowe">Postanowienia końcowe</a></li>
+        <li><a href="#formularz">Załącznik: wzór odstąpienia</a></li>
+      </ol>
+    </nav>
+
+    <article class="legal__section" id="postanowienia">
+      <h2 class="legal__section-title">1. Postanowienia ogólne</h2>
+      <ol>
+        <li>
+          Regulamin określa zasady korzystania ze sklepu internetowego działającego pod adresem
+          {{ seller.siteUrl }} oraz zasady zawierania umów sprzedaży za jego pośrednictwem.
+        </li>
+        <li>
+          Sprzedawca prowadzi sprzedaż w ramach <strong>działalności nierejestrowanej</strong> w
+          rozumieniu art. 5 ust. 1 ustawy z dnia 6 marca 2018 r. — Prawo przedsiębiorców. Oznacza
+          to, że Sprzedawca nie jest wpisany do CEIDG i nie posiada numerów NIP ani REGON.
+        </li>
+        <li>
+          Prowadzenie działalności nierejestrowanej nie ogranicza uprawnień Klienta będącego
+          konsumentem. Sprzedawcę wiążą przepisy ustawy z dnia 30 maja 2014 r. o prawach konsumenta,
+          w tym prawo odstąpienia od umowy i odpowiedzialność za zgodność towaru z umową.
+        </li>
+        <li>
+          Warunkiem złożenia zamówienia jest zapoznanie się z Regulaminem i akceptacja jego treści w
+          formularzu zamówienia.
+        </li>
+      </ol>
+    </article>
+
+    <article class="legal__section" id="definicje">
+      <h2 class="legal__section-title">2. Definicje</h2>
+      <ul>
+        <li>
+          <strong>Sklep</strong> — sklep internetowy dostępny pod adresem {{ seller.siteUrl }}.
+        </li>
+        <li>
+          <strong>Sprzedawca</strong> — {{ seller.name }}, prowadzący sprzedaż pod nazwą handlową
+          {{ seller.tradeName }}.
+        </li>
+        <li><strong>Klient</strong> — osoba składająca zamówienie w Sklepie.</li>
+        <li>
+          <strong>Konsument</strong> — osoba fizyczna zawierająca umowę niezwiązaną bezpośrednio z
+          jej działalnością gospodarczą lub zawodową. Uprawnienia konsumenta przysługują także
+          osobie fizycznej zawierającej umowę bezpośrednio związaną z jej działalnością gospodarczą,
+          gdy z treści umowy wynika, że nie ma ona dla niej charakteru zawodowego (art. 7aa ustawy o
+          prawach konsumenta).
+        </li>
+        <li>
+          <strong>Produkt personalizowany</strong> — produkt wykonywany według specyfikacji Klienta:
+          z jego treściami (imiona, data, miejsca, lista gości), wybranym papierem, kolorem folii,
+          kopertą lub innym indywidualnym wykończeniem.
+        </li>
+        <li>
+          <strong>Próbka</strong> — pojedynczy egzemplarz wzoru bez treści Klienta, zamawiany, żeby
+          obejrzeć papier i wykonanie przed właściwym zamówieniem.
+        </li>
+      </ul>
+    </article>
+
+    <article class="legal__section" id="sprzedawca">
+      <h2 class="legal__section-title">3. Sprzedawca i kontakt</h2>
+      <div class="legal__card">
+        <dl>
+          <dt>Sprzedawca</dt>
+          <dd>{{ seller.name }} ({{ seller.tradeName }})</dd>
+          <dt>Forma działalności</dt>
+          <dd>Działalność nierejestrowana — bez NIP i REGON</dd>
+          <dt>Adres do korespondencji i zwrotów</dt>
+          <dd>{{ sellerAddress }}</dd>
+          <dt>E-mail</dt>
+          <dd>
+            <a [href]="'mailto:' + seller.email">{{ seller.email }}</a>
+          </dd>
+          <dt>Telefon</dt>
+          <dd>{{ seller.phone }}</dd>
+        </dl>
+      </div>
+      <p>
+        Kontakt e-mailowy jest najszybszą drogą. Odpowiadamy w dni robocze, zwykle tego samego dnia.
+        Koszt połączenia telefonicznego odpowiada standardowej stawce operatora Klienta.
+      </p>
+    </article>
+
+    <article class="legal__section" id="wymagania">
+      <h2 class="legal__section-title">4. Wymagania techniczne</h2>
+      <p>
+        Do korzystania ze Sklepu wystarczy urządzenie z dostępem do internetu, aktualna przeglądarka
+        z włączoną obsługą JavaScript oraz czynny adres e-mail. Sklep zapisuje w przeglądarce
+        zawartość koszyka i listę ulubionych produktów — bez tego zapisu koszyk nie przetrwa
+        odświeżenia strony. Szczegóły opisuje
+        <a routerLink="/privacy-policy">Polityka prywatności</a>.
+      </p>
+    </article>
+
+    <article class="legal__section" id="produkty">
+      <h2 class="legal__section-title">5. Produkty, ceny i personalizacja</h2>
+      <ol>
+        <li>
+          Ceny podane w Sklepie są cenami w złotych polskich. Sprzedawca korzysta ze zwolnienia z
+          podatku VAT, więc do podanych kwot nie dolicza się podatku — są to kwoty ostateczne za
+          produkt, powiększane wyłącznie o wybrany przez Klienta koszt dostawy.
+        </li>
+        <li>
+          Ceny przy zaproszeniach są cenami wyjściowymi („od”) za sztukę. Ostateczna cena zależy od
+          wybranych opcji: rodzaju papieru, złocenia, koperty i zadruku kopert. Podsumowanie w
+          koszyku pokazuje pełną kwotę przed złożeniem zamówienia.
+        </li>
+        <li>
+          Minimalne zamówienie zaproszeń to {{ minQuantity }} sztuk. Zamówienia mniejsze są możliwe
+          — sklep dolicza wtedy wskazaną w koszyku dopłatę za przygotowanie projektu i przezbrojenie
+          druku.
+        </li>
+        <li>
+          Sprzedawca wystawia rachunek na żądanie Klienta zgłoszone w terminie 3 miesięcy od wydania
+          towaru.
+        </li>
+        <li>
+          Zdjęcia produktów oddają rzeczywisty wygląd, ale odcienie papieru i folii mogą wyglądać
+          inaczej na różnych ekranach. Kto chce mieć pewność co do koloru i faktury, może zamówić
+          Próbkę.
+        </li>
+      </ol>
+    </article>
+
+    <article class="legal__section" id="zamowienie">
+      <h2 class="legal__section-title">6. Zamówienie i zawarcie umowy</h2>
+      <ol>
+        <li>Klient wybiera produkt, konfiguruje jego opcje i dodaje go do koszyka.</li>
+        <li>
+          W formularzu zamówienia Klient podaje dane do wysyłki, wybiera sposób dostawy i formę
+          płatności, może wpisać kod rabatowy i akceptuje Regulamin.
+        </li>
+        <li>
+          Kliknięcie przycisku <strong>„Zamawiam z obowiązkiem zapłaty”</strong> oznacza złożenie
+          zamówienia i obowiązek zapłaty. W tym momencie dochodzi do zawarcia umowy sprzedaży.
+        </li>
+        <li>
+          Potwierdzenie zamówienia wraz z jego numerem Sprzedawca wysyła na podany adres e-mail.
+        </li>
+        <li>
+          Treści na produkty personalizowane Klient podaje po opłaceniu zamówienia — w formularzu,
+          do którego link przychodzi e-mailem. Do czasu zatwierdzenia projektu treści można
+          poprawiać.
+        </li>
+      </ol>
+    </article>
+
+    <article class="legal__section" id="platnosci">
+      <h2 class="legal__section-title">7. Płatności</h2>
+      <ol>
+        <li>
+          <strong>Przelew z góry</strong> — dane do przelewu Sprzedawca wysyła e-mailem razem z
+          potwierdzeniem zamówienia. Rachunek: {{ seller.bankAccount }} ({{ seller.bankName }}).
+        </li>
+        <li>
+          <strong>Płatność przy odbiorze (pobranie)</strong> — dostępna dla części metod dostawy, z
+          dopłatą wskazaną w koszyku przy wyborze tej formy płatności.
+        </li>
+        <li>
+          Przy płatności z góry Sprzedawca prosi o zapłatę w ciągu 7 dni od złożenia zamówienia. Po
+          bezskutecznym upływie tego terminu i jednym przypomnieniu zamówienie może zostać
+          anulowane.
+        </li>
+        <li>
+          Prace nad projektem ruszają po zaksięgowaniu płatności, a przy pobraniu — po podaniu przez
+          Klienta treści do projektu.
+        </li>
+      </ol>
+    </article>
+
+    <article class="legal__section" id="dostawa">
+      <h2 class="legal__section-title">8. Dostawa i jej koszty</h2>
+      <p>
+        Sprzedawca wysyła zamówienia wyłącznie na terytorium Polski. Koszt dostawy Klient widzi w
+        koszyku przed złożeniem zamówienia. Aktualny cennik:
+      </p>
+
+      @if (methods().length) {
+        <div class="legal__table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Sposób dostawy</th>
+                <th>Przewoźnik</th>
+                <th>Koszt</th>
+                <th>Gratis od</th>
+                <th>Pobranie</th>
+                <th>Czas</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (method of methods(); track method.code) {
+                <tr>
+                  <td>{{ method.name }}</td>
+                  <td>{{ method.carrier }}</td>
+                  <td>{{ method.price === 0 ? 'gratis' : (method.price | price) }}</td>
+                  <td>{{ method.free_from === null ? '—' : (method.free_from | price) }}</td>
+                  <td>
+                    @if (method.cod_surcharge === null) {
+                      niedostępne
+                    } @else if (method.cod_surcharge === 0) {
+                      bez dopłaty
+                    } @else {
+                      +{{ method.cod_surcharge | price }}
+                    }
+                  </td>
+                  <td>{{ method.lead_time || '—' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+
+      <ol>
+        <li>
+          Czas dostawy podany w tabeli liczy się od nadania paczki, a nie od złożenia zamówienia —
+          dolicza się do czasu realizacji opisanego w punkcie 9.
+        </li>
+        <li>Numer do śledzenia przesyłki Sprzedawca wysyła e-mailem w dniu nadania.</li>
+        <li>
+          Przy metodach wymagających punktu odbioru Klient wskazuje ten punkt w formularzu
+          zamówienia.
+        </li>
+        <li>
+          Sprzedawca pakuje przesyłki w opakowania zabezpieczające przed zgnieceniem. Jeśli paczka
+          dotrze uszkodzona, warto spisać z kurierem protokół szkody — ułatwia to reklamację, ale
+          nie jest warunkiem jej rozpatrzenia.
+        </li>
+      </ol>
+    </article>
+
+    <article class="legal__section" id="realizacja">
+      <h2 class="legal__section-title">9. Realizacja zamówienia</h2>
+      <p>
+        Standardowy czas realizacji to {{ leadDays }} dni robocze liczone od akceptacji projektu
+        przez Klienta. Pełny przebieg — od projektu, przez poprawki, po druk i wysyłkę — opisuje
+        strona <a routerLink="/production-stages">Etapy i czas realizacji</a>.
+      </p>
+      <ol>
+        <li>
+          Projekt w formacie PDF Sprzedawca wysyła na adres e-mail Klienta. Poprawki są bezpłatne i
+          bez limitu.
+        </li>
+        <li>
+          Do druku trafia wyłącznie wersja zaakceptowana przez Klienta pisemnie (e-mailem). Czas
+          oczekiwania na akceptację nie wlicza się do czasu realizacji.
+        </li>
+        <li>
+          Sprzedawca nie odpowiada za błędy w treści, które Klient zatwierdził w projekcie — dlatego
+          prosimy o dokładne sprawdzenie imion, dat i adresów przed akceptacją.
+        </li>
+        <li>
+          Realizacja express, jeśli została wybrana, oznacza wejście do produkcji poza kolejnością
+          za dopłatą wskazaną przy produkcie.
+        </li>
+      </ol>
+    </article>
+
+    <article class="legal__section" id="odstapienie">
+      <h2 class="legal__section-title">10. Prawo odstąpienia od umowy</h2>
+      <ol>
+        <li>
+          Konsument może odstąpić od umowy zawartej na odległość w terminie
+          {{ withdrawalDays }} dni bez podawania przyczyny. Termin liczy się od dnia objęcia towaru
+          w posiadanie przez Konsumenta lub wskazaną przez niego osobę.
+        </li>
+        <li>
+          Do zachowania terminu wystarczy wysłanie oświadczenia przed jego upływem — e-mailem na
+          adres {{ seller.email }} albo pisemnie na adres {{ sellerAddress }}. Można skorzystać ze
+          wzoru z załącznika, ale nie jest to obowiązkowe.
+        </li>
+        <li>
+          Zwrot płatności — łącznie z kosztem najtańszej oferowanej przez Sprzedawcę dostawy —
+          następuje niezwłocznie, nie później niż w ciągu {{ withdrawalDays }} dni od otrzymania
+          oświadczenia. Sprzedawca może wstrzymać się ze zwrotem do chwili otrzymania towaru z
+          powrotem lub dowodu jego odesłania.
+        </li>
+        <li>
+          Towar należy odesłać w ciągu {{ withdrawalDays }} dni od odstąpienia. Bezpośredni koszt
+          odesłania ponosi Konsument.
+        </li>
+        <li>
+          Konsument odpowiada za zmniejszenie wartości towaru wynikające z korzystania z niego w
+          sposób wykraczający poza konieczny do stwierdzenia jego charakteru, cech i funkcjonowania.
+        </li>
+      </ol>
+
+      <div class="legal__highlight">
+        <p>
+          <strong>Kiedy prawo odstąpienia nie przysługuje.</strong> Zgodnie z art. 38 ust. 1 pkt 3
+          ustawy o prawach konsumenta prawo odstąpienia nie przysługuje w odniesieniu do umów, w
+          których przedmiotem świadczenia jest rzecz nieprefabrykowana, wyprodukowana według
+          specyfikacji konsumenta lub służąca zaspokojeniu jego zindywidualizowanych potrzeb.
+          Dotyczy to wszystkich Produktów personalizowanych — zaproszeń, winietek, menu i
+          pozostałych dodatków z Waszymi treściami. Klient potwierdza tę informację osobnym
+          oświadczeniem w formularzu zamówienia, zanim je złoży.
+        </p>
+        <p>
+          Prawo odstąpienia <strong>przysługuje</strong> natomiast przy Próbkach i innych produktach
+          gotowych, sprzedawanych bez personalizacji.
+        </p>
+      </div>
+      <p>
+        Wyłączenie prawa odstąpienia nie ma nic wspólnego z reklamacją. Jeśli produkt jest wadliwy
+        albo niezgodny z zatwierdzonym projektem, Klientowi przysługują uprawnienia opisane w
+        punkcie 11 — niezależnie od tego, czy był personalizowany.
+      </p>
+    </article>
+
+    <article class="legal__section" id="reklamacje">
+      <h2 class="legal__section-title">11. Reklamacje — niezgodność towaru z umową</h2>
+      <ol>
+        <li>
+          Sprzedawca odpowiada wobec Konsumenta za brak zgodności towaru z umową na zasadach
+          rozdziału 5a ustawy o prawach konsumenta. Odpowiedzialność obejmuje brak zgodności
+          istniejący w chwili dostarczenia towaru i ujawniony w ciągu {{ conformityYears }} lat od
+          tej chwili. Brak zgodności ujawniony w tym okresie domniemywa się jako istniejący w chwili
+          dostarczenia.
+        </li>
+        <li>
+          Reklamację można złożyć e-mailem na {{ seller.email }} albo pisemnie na
+          {{ sellerAddress }}. Warto opisać, na czym polega problem, i dołączyć zdjęcia oraz numer
+          zamówienia — przyspiesza to rozpatrzenie, ale nie jest warunkiem formalnym.
+        </li>
+        <li>
+          W pierwszej kolejności Konsument może żądać <strong>naprawy</strong> albo
+          <strong>wymiany</strong> towaru. Sprzedawca dokonuje jej w rozsądnym czasie i bez
+          nadmiernych niedogodności, na własny koszt.
+        </li>
+        <li>
+          Jeżeli naprawa i wymiana są niemożliwe lub wymagałyby nadmiernych kosztów, albo Sprzedawca
+          ich nie dokonał, Konsument może złożyć oświadczenie o
+          <strong>obniżeniu ceny</strong> albo <strong>odstąpieniu od umowy</strong>. Odstąpienie
+          nie jest możliwe, gdy brak zgodności jest nieistotny.
+        </li>
+        <li>
+          Sprzedawca odpowiada na reklamację w terminie {{ complaintDays }} dni od jej otrzymania.
+          Brak odpowiedzi w tym terminie oznacza uznanie reklamacji.
+        </li>
+        <li>
+          Zwrot należności po uwzględnionej reklamacji następuje w ciągu {{ complaintDays }} dni, tą
+          samą metodą, jaką Klient zapłacił, chyba że uzgodnimy inaczej.
+        </li>
+        <li>
+          Reklamacja nie obejmuje błędów w treści, które Klient zaakceptował w projekcie przed
+          drukiem, ani różnic odcienia mieszczących się w tolerancji druku cyfrowego.
+        </li>
+      </ol>
+    </article>
+
+    <article class="legal__section" id="spory">
+      <h2 class="legal__section-title">12. Pozasądowe rozwiązywanie sporów</h2>
+      <p>
+        Konsument może skorzystać z pozasądowych sposobów rozpatrywania reklamacji i dochodzenia
+        roszczeń. Dostępne drogi to w szczególności:
+      </p>
+      <ul>
+        <li>bezpłatna pomoc powiatowego (miejskiego) rzecznika konsumentów;</li>
+        <li>
+          mediacja przy wojewódzkim inspektoracie Inspekcji Handlowej oraz stały polubowny sąd
+          konsumencki działający przy tym inspektoracie;
+        </li>
+        <li>
+          pomoc organizacji społecznych, do których zadań statutowych należy ochrona konsumentów
+          (m.in. Federacja Konsumentów);
+        </li>
+        <li>
+          informacje i infolinia konsumencka Urzędu Ochrony Konkurencji i Konsumentów —
+          <a href="https://uokik.gov.pl" target="_blank" rel="noopener">uokik.gov.pl</a>.
+        </li>
+      </ul>
+      <p>
+        Skorzystanie z tych dróg jest dobrowolne i wymaga zgody obu stron. Unijna platforma ODR
+        zakończyła działalność 20 lipca 2025 r. i nie służy już do składania skarg.
+      </p>
+    </article>
+
+    <article class="legal__section" id="prawa-autorskie">
+      <h2 class="legal__section-title">13. Prawa autorskie</h2>
+      <ol>
+        <li>
+          Wzory graficzne, zdjęcia i opisy w Sklepie są utworami w rozumieniu prawa autorskiego i
+          pozostają własnością Sprzedawcy. Ich kopiowanie i wykorzystywanie bez zgody jest
+          zabronione.
+        </li>
+        <li>
+          Kupując produkt, Klient nabywa egzemplarze wydruku do własnego użytku, a nie prawa
+          autorskie do projektu ani prawo do jego dalszego powielania.
+        </li>
+        <li>
+          Przesyłając Sprzedawcy własne materiały (zdjęcia, grafiki, teksty), Klient oświadcza, że
+          ma do nich prawa, i upoważnia Sprzedawcę do wykorzystania ich w zakresie niezbędnym do
+          realizacji zamówienia.
+        </li>
+        <li>
+          Sprzedawca może pokazać zrealizowany projekt w portfolio i mediach społecznościowych.
+          Wystarczy jedno zdanie w uwagach do zamówienia lub e-mailem, żeby tego nie robił — dane
+          osobowe (imiona, data, adresy) są przed publikacją zawsze usuwane lub zmieniane.
+        </li>
+      </ol>
+    </article>
+
+    <article class="legal__section" id="dane">
+      <h2 class="legal__section-title">14. Dane osobowe</h2>
+      <p>
+        Administratorem danych osobowych Klientów jest Sprzedawca. Zasady przetwarzania opisują
+        <a routerLink="/privacy-policy">Polityka prywatności</a> oraz
+        <a routerLink="/gdpr">klauzula informacyjna RODO</a>. Podanie danych jest dobrowolne, ale
+        niezbędne do zawarcia i wykonania umowy.
+      </p>
+    </article>
+
+    <article class="legal__section" id="koncowe">
+      <h2 class="legal__section-title">15. Postanowienia końcowe</h2>
+      <ol>
+        <li>
+          W sprawach nieuregulowanych Regulaminem stosuje się przepisy prawa polskiego, w
+          szczególności Kodeksu cywilnego oraz ustawy o prawach konsumenta.
+        </li>
+        <li>
+          Sprzedawca może zmienić Regulamin z ważnych przyczyn — zmiany prawa, zmiany sposobu
+          dostawy lub płatności, zmiany zakresu usług. Zamówienia złożone przed wejściem zmian w
+          życie realizowane są na dotychczasowych zasadach.
+        </li>
+        <li>
+          Zmieniony Regulamin publikowany jest na tej stronie z datą wejścia w życie, nie
+          wcześniejszą niż 14 dni od publikacji.
+        </li>
+        <li>
+          Żadne postanowienie Regulaminu nie ogranicza uprawnień Konsumenta wynikających z
+          bezwzględnie obowiązujących przepisów prawa. W razie sprzeczności pierwszeństwo mają te
+          przepisy.
+        </li>
+      </ol>
+    </article>
+
+    <article class="legal__section" id="formularz">
+      <h2 class="legal__section-title">16. Załącznik: wzór formularza odstąpienia</h2>
+      <p>
+        Z formularza korzysta się tylko wtedy, gdy chce się odstąpić od umowy — i tylko przy
+        produktach, których wyłączenie z punktu 10 nie obejmuje.
+      </p>
+      <div class="legal__form-template">
+        Adresat: {{ seller.name }} ({{ seller.tradeName }})
+        {{ sellerAddress }}
+        E-mail: {{ seller.email }}
+
+        Ja/My (*) niniejszym informuję/informujemy (*) o moim/naszym (*) odstąpieniu od umowy
+        sprzedaży następujących towarów:
+        .................................................................. Numer zamówienia:
+        ................................................... Data zamówienia (*) / odbioru (*):
+        .................................. Imię i nazwisko konsumenta:
+        ......................................... Adres konsumenta:
+        ................................................... Numer rachunku do zwrotu:
+        ........................................... Podpis (tylko jeżeli formularz jest przesyłany w
+        wersji papierowej): .................................................................. Data:
+        ............................................................... (*) Niepotrzebne skreślić.
+      </div>
+    </article>
+
+    <p class="legal__footer-note">
+      Masz pytanie do regulaminu? <a routerLink="/contact">Napisz do nas</a> — odpowiemy w dni
+      robocze.
+    </p>
+  </section>
+
+  <app-footer />
+</main>

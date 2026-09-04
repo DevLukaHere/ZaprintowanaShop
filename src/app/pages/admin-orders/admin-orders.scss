@@ -479,3 +479,38 @@
     color: var(--color-text);
   }
 }
+
+/* Kolumna „Dostawa” i kwoty zamówienia. */
+.admin {
+  &__cell-shipping {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    min-width: 11rem;
+  }
+
+  &__shipping-name {
+    font-size: 0.84rem;
+  }
+
+  &__shipping-point {
+    font-size: 0.75rem;
+    color: var(--color-blush-deep);
+    word-break: break-word;
+  }
+
+  &__coupon {
+    display: block;
+    margin-top: 0.2rem;
+    font-size: 0.75rem;
+    color: var(--color-sage-deep);
+  }
+
+  &__order-total {
+    display: block;
+    margin-top: 0.15rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--color-text);
+  }
+}

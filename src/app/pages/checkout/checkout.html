@@ -104,6 +104,131 @@
             </label>
           </div>
 
+          <h2 class="checkout__form-title">Sposób dostawy</h2>
+
+          @if (shipping.isLoading() && methods().length === 0) {
+            <p class="checkout__note">Wczytujemy dostępne sposoby dostawy…</p>
+          } @else if (methods().length === 0) {
+            <p class="checkout__error" role="alert">
+              Chwilowo nie możemy pokazać sposobów dostawy. Napisz do nas — ustalimy wysyłkę
+              indywidualnie.
+            </p>
+          } @else {
+            <ul class="delivery">
+              @for (method of methods(); track method.code) {
+                <li>
+                  <label
+                    class="delivery__option"
+                    [class.delivery__option--active]="selectedMethod()?.code === method.code"
+                  >
+                    <input
+                      type="radio"
+                      name="shippingMethod"
+                      [value]="method.code"
+                      [checked]="selectedMethod()?.code === method.code"
+                      (change)="selectMethod(method.code)"
+                    />
+                    <span class="delivery__body">
+                      <span class="delivery__name">
+                        {{ method.name }}
+                        <span class="delivery__carrier">{{ method.carrier }}</span>
+                      </span>
+                      @if (method.description) {
+                        <span class="delivery__description">{{ method.description }}</span>
+                      }
+                      <span class="delivery__meta">
+                        @if (method.lead_time) {
+                          <span>{{ method.lead_time }}</span>
+                        }
+                        @if (method.free_from !== null) {
+                          <span>gratis od {{ method.free_from | price }}</span>
+                        }
+                        @if (method.cod_surcharge !== null) {
+                          <span>pobranie dostępne</span>
+                        }
+                      </span>
+                    </span>
+                    <span class="delivery__price">
+                      @if (selectedMethod()?.code === method.code && totals().freeShipping) {
+                        <s>{{ method.price | price }}</s>
+                        <strong>Gratis</strong>
+                      } @else if (method.price === 0) {
+                        <strong>Gratis</strong>
+                      } @else {
+                        <strong>{{ method.price | price }}</strong>
+                      }
+                    </span>
+                  </label>
+                </li>
+              }
+            </ul>
+
+            @if (needsPickupPoint()) {
+              <label class="field">
+                <span class="field__label">Punkt odbioru *</span>
+                <input
+                  type="text"
+                  [value]="pickupPoint()"
+                  (input)="pickupPoint.set($any($event.target).value)"
+                  [placeholder]="selectedMethod()?.point_hint || 'Wskaż punkt odbioru'"
+                  [class.field__input--error]="pickupPointMissing()"
+                />
+                @if (pickupPointMissing()) {
+                  <span class="field__error">Wskaż punkt, do którego mamy nadać paczkę</span>
+                }
+              </label>
+            }
+
+            <h2 class="checkout__form-title">Płatność</h2>
+
+            <div class="payment">
+              <label
+                class="payment__option"
+                [class.payment__option--active]="paymentMethod() === 'transfer'"
+              >
+                <input
+                  type="radio"
+                  name="paymentMethod"
+                  value="transfer"
+                  [checked]="paymentMethod() === 'transfer'"
+                  (change)="selectPayment('transfer')"
+                />
+                <span>
+                  <strong>Przelew z góry</strong>
+                  <span class="payment__hint">
+                    Dane do przelewu wysyłamy mailem razem z potwierdzeniem zamówienia.
+                  </span>
+                </span>
+              </label>
+
+              @if (codAvailable()) {
+                <label
+                  class="payment__option"
+                  [class.payment__option--active]="paymentMethod() === 'cod'"
+                >
+                  <input
+                    type="radio"
+                    name="paymentMethod"
+                    value="cod"
+                    [checked]="paymentMethod() === 'cod'"
+                    (change)="selectPayment('cod')"
+                  />
+                  <span>
+                    <strong>Płatność przy odbiorze</strong>
+                    <span class="payment__hint">
+                      @if (selectedMethod()?.cod_surcharge; as surcharge) {
+                        Dopłata {{ surcharge | price }}. Projekt i tak realizujemy dopiero po
+                        akceptacji — pobranie dotyczy gotowej paczki.
+                      } @else {
+                        Bez dopłaty.
+                      }
+                    </span>
+                  </span>
+                </label>
+              }
+            </div>
+          }
+
           @if (needsPersonalisation()) {
             <p class="checkout__personalisation-note">
               Treści na zaproszenia — imiona, datę, godzinę i miejsca — zbierzemy osobnym
@@ -123,12 +248,52 @@
             <textarea rows="3" formControlName="notes"></textarea>
           </label>
 
+          <div class="consents">
+            <label class="consent" [class.consent--error]="termsMissing()">
+              <input
+                type="checkbox"
+                [checked]="acceptTerms()"
+                (change)="acceptTerms.set($any($event.target).checked)"
+              />
+              <span>
+                Zapoznałam/em się z <a routerLink="/terms" target="_blank">Regulaminem</a> i
+                <a routerLink="/privacy-policy" target="_blank">Polityką prywatności</a> i akceptuję
+                ich treść. *
+              </span>
+            </label>
+            @if (termsMissing()) {
+              <span class="field__error"
+                >Bez akceptacji regulaminu nie możemy przyjąć zamówienia</span
+              >
+            }
+
+            @if (needsWithdrawalWaiver()) {
+              <label class="consent" [class.consent--error]="waiverMissing()">
+                <input
+                  type="checkbox"
+                  [checked]="acceptWithdrawal()"
+                  (change)="acceptWithdrawal.set($any($event.target).checked)"
+                />
+                <span>
+                  Przyjmuję do wiadomości, że zamawiam produkt wykonywany na moje indywidualne
+                  zamówienie (z moimi treściami), więc po jego wykonaniu nie przysługuje mi prawo
+                  odstąpienia od umowy — art. 38 ust. 1 pkt 3 ustawy o prawach konsumenta. *
+                </span>
+              </label>
+              @if (waiverMissing()) {
+                <span class="field__error">
+                  Potrzebujemy tego potwierdzenia, żeby ruszyć z personalizowanym drukiem
+                </span>
+              }
+            }
+          </div>
+
           @if (errorMessage(); as message) {
             <p class="checkout__error" role="alert">{{ message }}</p>
           }
 
           <button type="submit" class="btn btn--primary" [disabled]="submitting()">
-            {{ submitting() ? 'Wysyłanie…' : 'Złóż zamówienie' }}
+            {{ submitting() ? 'Wysyłanie…' : 'Zamawiam z obowiązkiem zapłaty' }}
           </button>
         </form>
 
@@ -179,26 +344,90 @@
             }
           </ul>
 
+          <div class="coupon">
+            <span class="coupon__label">Kod rabatowy</span>
+            @if (activeCoupon(); as coupon) {
+              <div class="coupon__applied">
+                <span class="coupon__code">{{ coupon.code }}</span>
+                <span class="coupon__value">
+                  @if (coupon.kind === 'free_shipping') {
+                    darmowa dostawa
+                  } @else {
+                    −{{ totals().couponDiscount | price }}
+                  }
+                </span>
+                <button type="button" class="coupon__remove" (click)="removeCoupon()">Usuń</button>
+              </div>
+              @if (coupon.description) {
+                <span class="coupon__hint">{{ coupon.description }}</span>
+              }
+            } @else {
+              <div class="coupon__form">
+                <input
+                  type="text"
+                  [value]="couponInput()"
+                  (input)="couponInput.set($any($event.target).value)"
+                  (keydown.enter)="$event.preventDefault(); applyCoupon()"
+                  placeholder="np. WIOSNA10"
+                  aria-label="Kod rabatowy"
+                />
+                <button
+                  type="button"
+                  class="coupon__apply"
+                  (click)="applyCoupon()"
+                  [disabled]="couponChecking() || !couponInput().trim()"
+                >
+                  {{ couponChecking() ? 'Sprawdzam…' : 'Użyj' }}
+                </button>
+              </div>
+              @if (couponError(); as message) {
+                <span class="field__error">{{ message }}</span>
+              }
+              @if (couponBelowMinimum()) {
+                <span class="field__error">
+                  Kupon zadziała od {{ couponMinimum() | price }} wartości koszyka.
+                </span>
+              }
+            }
+          </div>
+
           <dl class="checkout__totals">
             <div>
               <dt>Wartość produktów</dt>
-              <dd>{{ totals().subtotal | price }}</dd>
+              <dd>{{ cartTotals().subtotal | price }}</dd>
             </div>
-            @if (totals().discountRate > 0) {
+            @if (cartTotals().discountRate > 0) {
               <div class="checkout__totals-discount">
-                <dt>Rabat {{ totals().discountRate * 100 }}%</dt>
-                <dd>−{{ totals().discountAmount | price }}</dd>
+                <dt>Rabat {{ cartTotals().discountRate * 100 }}%</dt>
+                <dd>−{{ cartTotals().discountAmount | price }}</dd>
               </div>
             }
-            @if (totals().belowMinimumFee > 0) {
+            @if (cartTotals().belowMinimumFee > 0) {
               <div>
                 <dt>Dopłata poniżej {{ minQuantity }} szt.</dt>
-                <dd>{{ totals().belowMinimumFee | price }}</dd>
+                <dd>{{ cartTotals().belowMinimumFee | price }}</dd>
+              </div>
+            }
+            @if (totals().couponDiscount > 0) {
+              <div class="checkout__totals-discount">
+                <dt>Kupon {{ activeCoupon()?.code }}</dt>
+                <dd>−{{ totals().couponDiscount | price }}</dd>
               </div>
             }
             <div>
-              <dt>Dostawa</dt>
-              <dd>{{ totals().freeShipping ? 'Gratis' : 'wg cennika' }}</dd>
+              <dt>
+                Dostawa
+                @if (selectedMethod(); as method) {
+                  <span class="checkout__totals-note">{{ method.name }}</span>
+                }
+              </dt>
+              <dd>
+                @if (totals().shippingCost === 0) {
+                  Gratis
+                } @else {
+                  {{ totals().shippingCost | price }}
+                }
+              </dd>
             </div>
             <div class="checkout__totals-sum">
               <dt>Razem</dt>
@@ -206,7 +435,7 @@
             </div>
           </dl>
 
-          @if (!totals().freeShipping) {
+          @if (totals().missingForFreeShipping > 0) {
             <p class="checkout__note">
               Do darmowej dostawy brakuje {{ totals().missingForFreeShipping | price }}.
             </p>

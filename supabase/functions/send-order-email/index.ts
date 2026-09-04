@@ -48,6 +48,14 @@ interface OrderRow {
   shipping_postcode: string;
   notes: string | null;
   payment_status: string;
+  shipping_method_name: string | null;
+  shipping_point: string | null;
+  shipping_cost: number | null;
+  payment_method: string | null;
+  items_subtotal: number | null;
+  coupon_code: string | null;
+  discount_amount: number | null;
+  total_amount: number | null;
   personalisation_token: string;
   order_placed_email_sent_at: string | null;
   payment_email_sent_at: string | null;
@@ -142,6 +150,59 @@ function ownerItemsHtml(items: OrderItemRow[]): string {
     <p style="margin:0 0 20px;font-size:15px;font-weight:600;text-align:right;">Razem: ${formatPrice(orderTotal(items))}</p>`;
 }
 
+const PAYMENT_LABELS: Record<string, string> = {
+  transfer: 'przelew z góry',
+  cod: 'płatność przy odbiorze (pobranie)',
+};
+
+/**
+ * Podsumowanie kwot i dostawy — te same liczby, które zapisała baza przy składaniu
+ * zamówienia. Zamówienia sprzed wprowadzenia wyboru dostawy nie mają ich wcale,
+ * więc wtedy blok się nie pokazuje.
+ */
+function summaryHtml(order: OrderRow): string {
+  if (!order.total_amount) {
+    return '';
+  }
+
+  const row = (label: string, value: string, strong = false) => `
+    <tr>
+      <td style="padding:4px 0;font-size:14px;color:#8a7b74;">${escapeHtml(label)}</td>
+      <td style="padding:4px 0;font-size:${strong ? '15px' : '14px'};text-align:right;white-space:nowrap;${
+        strong ? 'font-weight:600;' : ''
+      }">${escapeHtml(value)}</td>
+    </tr>`;
+
+  const rows = [row('Wartość produktów', formatPrice(order.items_subtotal ?? 0))];
+
+  if ((order.discount_amount ?? 0) > 0) {
+    rows.push(
+      row(
+        order.coupon_code ? `Kupon ${order.coupon_code}` : 'Rabat',
+        `−${formatPrice(order.discount_amount ?? 0)}`,
+      ),
+    );
+  }
+
+  rows.push(
+    row(
+      `Dostawa: ${order.shipping_method_name ?? 'ustalana indywidualnie'}`,
+      order.shipping_cost ? formatPrice(order.shipping_cost) : 'gratis',
+    ),
+  );
+
+  if (order.shipping_point) {
+    rows.push(row('Punkt odbioru', order.shipping_point));
+  }
+  rows.push(row('Płatność', PAYMENT_LABELS[order.payment_method ?? 'transfer'] ?? '—'));
+  rows.push(row('Do zapłaty', formatPrice(order.total_amount), true));
+
+  return `
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 20px;border-top:1px solid #e8d5cd;border-bottom:1px solid #e8d5cd;">
+      ${rows.join('')}
+    </table>`;
+}
+
 function buildEmail(kind: EmailKind, order: OrderRow, siteUrl: string) {
   const orderNumber = order.id.slice(0, 8);
   const name = escapeHtml(order.customer_name.split(' ')[0] || order.customer_name);
@@ -153,6 +214,7 @@ function buildEmail(kind: EmailKind, order: OrderRow, siteUrl: string) {
         'Mamy Wasze zamówienie',
         `<p style="margin:0 0 16px;font-size:15px;line-height:1.7;">Cześć ${name}, dziękujemy za zamówienie <strong>${orderNumber}</strong>.</p>
          ${itemsHtml(order.order_items)}
+         ${summaryHtml(order)}
          <p style="margin:0 0 16px;font-size:15px;line-height:1.7;">Odezwiemy się z potwierdzeniem płatności. Zaraz po niej dostaniecie od nas link do formularza, w którym podacie treści na zaproszenia — imiona, datę, godzinę i miejsca.</p>
          <p style="margin:0;font-size:13px;line-height:1.7;color:#8a7b74;">Numer zamówienia warto zachować — przyda się przy każdym pytaniu.</p>`,
       ),
@@ -208,6 +270,7 @@ function buildOwnerEmail(kind: EmailKind, order: OrderRow, siteUrl: string) {
         `<p style="margin:0 0 20px;font-size:15px;line-height:1.7;">Wpłynęło zamówienie <strong>${orderNumber}</strong>, jeszcze nieopłacone.</p>
          ${customerBlock}
          ${ownerItemsHtml(order.order_items)}
+         ${summaryHtml(order)}
          ${notesBlock}
          ${ctaButton}`,
       ),
@@ -221,6 +284,7 @@ function buildOwnerEmail(kind: EmailKind, order: OrderRow, siteUrl: string) {
       `<p style="margin:0 0 20px;font-size:15px;line-height:1.7;">Zamówienie <strong>${orderNumber}</strong> zostało opłacone. Klient dostał link do formularza z danymi do zaproszeń — dane pojawią się w panelu, gdy je uzupełni.</p>
        ${customerBlock}
        ${ownerItemsHtml(order.order_items)}
+       ${summaryHtml(order)}
        ${notesBlock}
        ${ctaButton}`,
     ),
@@ -323,7 +387,7 @@ Deno.serve(async (request) => {
   const { data, error } = await supabase
     .from('orders')
     .select(
-      'id, created_at, customer_name, customer_email, customer_phone, shipping_address, shipping_city, shipping_postcode, notes, payment_status, personalisation_token, order_placed_email_sent_at, payment_email_sent_at, order_items(product_name, quantity, unit_price)',
+      'id, created_at, customer_name, customer_email, customer_phone, shipping_address, shipping_city, shipping_postcode, notes, payment_status, shipping_method_name, shipping_point, shipping_cost, payment_method, items_subtotal, coupon_code, discount_amount, total_amount, personalisation_token, order_placed_email_sent_at, payment_email_sent_at, order_items(product_name, quantity, unit_price)',
     )
     .eq('id', orderId)
     .maybeSingle();
